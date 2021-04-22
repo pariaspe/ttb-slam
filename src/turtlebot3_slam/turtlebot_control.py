@@ -10,12 +10,16 @@ class MyTurtlebot:
         rospy.init_node('turtlebot_node')
         rospy.loginfo("Turtlebot init.")
 
+        self.__is_running = True
         self.__ranges = [float('inf')] * 360
 
         self.vel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=1)
         self.scan_sub = rospy.Subscriber('/scan', LaserScan, self.scan_cb)
 
         rospy.on_shutdown(self.__shutdown)
+
+    def is_running(self):
+        return self.__is_running
 
     def scan_cb(self, msg):
         self.__ranges = msg.ranges
@@ -39,6 +43,8 @@ class MyTurtlebot:
         self.set_vel()
 
     def __shutdown(self):
+        self.__is_running = False
+        self.stop()  # stopping the robot before leaving
         rospy.loginfo("Bye!")
 
 
