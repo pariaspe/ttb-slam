@@ -9,7 +9,7 @@ class MyTurtlebot:
 
         self.vel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=1)
 
-        rospy.on_shutdown(self.shutdown)
+        rospy.on_shutdown(self.__shutdown)
 
     def set_vel(self, vx=0, vy=0, vz=0, ax=0, ay=0, az=0):
         vel_msg = Twist()
@@ -25,7 +25,7 @@ class MyTurtlebot:
     def stop(self):
         self.set_vel()
 
-    def shutdown(self):
+    def __shutdown(self):
         rospy.loginfo("Bye!")
 
 
