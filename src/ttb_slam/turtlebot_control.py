@@ -3,6 +3,8 @@
 import rospy
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
+from nav_msgs.msg import Odometry
+from geometry_msgs.msg import Pose
 
 
 class MyTurtlebot:
@@ -12,9 +14,11 @@ class MyTurtlebot:
 
         self.__is_running = True
         self.__ranges = [float('inf')] * 360
+        self.__estimated_pose = Pose()
 
         self.vel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=1)
         self.scan_sub = rospy.Subscriber('/scan', LaserScan, self.scan_cb)
+        self.odom_sub = rospy.Subscriber('/odom', Odometry, self.odom_cb)
 
         rospy.on_shutdown(self.__shutdown)
 
@@ -23,6 +27,12 @@ class MyTurtlebot:
 
     def scan_cb(self, msg):
         self.__ranges = msg.ranges
+
+    def odom_cb(self, msg):
+        self.__estimated_pose = msg.pose.pose
+
+    def get_estimated_pose(self):
+        return self.__estimated_pose
 
     def get_frontal_dist(self):
         dist = self.__ranges[-22:] + self.__ranges[:23]  # from -22.5 to 22.5
