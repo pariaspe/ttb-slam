@@ -16,10 +16,10 @@ catkin build
 
 ## How to launch
 ```
-roslaunch turtlebot3_slam <file>.launch
+roslaunch ttb_slam <file>.launch
 ```
 
 ```
-roscd turtlebot3_slam && cd test
+roscd ttb_slam && cd test
 python2 <test-file>.py
 ```

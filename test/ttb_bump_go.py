@@ -1,5 +1,5 @@
 import time
-from turtlebot3_slam import MyTurtlebot
+from ttb_slam import MyTurtlebot
 import random
 
 

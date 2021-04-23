@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>turtlebot3_slam</name>
+  <name>ttb_slam</name>
   <version>0.0.0</version>
-  <description>The turtlebot3_slam package</description>
+  <description>The ttb_slam package</description>
 
   <maintainer email="parias@todo.todo">parias</maintainer>
 
