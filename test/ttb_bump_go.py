@@ -3,7 +3,7 @@ from ttb_slam import MyTurtlebot
 import random
 import tf
 from math import sin, cos
-
+from nav_msgs.msg import OccupancyGrid
 
 RATE = 0.02
 
@@ -23,10 +23,13 @@ def main():
     turtle = MyTurtlebot()
     time.sleep(2)
 
+    print('Introduce wanted resolution:')
+    resol = input()
+
     while turtle.is_running():
         pose = turtle.get_estimated_pose()
         dists = turtle.get_frontal_dist()
-
+    
         # Maquina de estados
         if any(i < 0.50 for i in dists):  # FRENTE A OBSTACULO
             print("OBSTACULO DETECTADO EN ({0}, {1})".format(*calc_rel_pose(pose, dists[22])))
@@ -37,6 +40,8 @@ def main():
             turtle.set_vel(az=yaw_rate)
             time.sleep(5)  # giro 5 seg
             turtle.stop()
+            resol_dists = turtle.get_sensor_dist_resol(resol)
+            print(list(resol_dists))
         else:  # AVANCE
             turtle.set_vel(vx=0.3)
 

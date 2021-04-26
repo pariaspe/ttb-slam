@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
+import numpy as np 
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
 from nav_msgs.msg import Odometry
@@ -48,6 +49,22 @@ class MyTurtlebot:
         vel_msg.angular.z = az
 
         self.vel_pub.publish(vel_msg)
+
+    def get_sensor_dist_resol(self, angle_resol):
+        default_resol = 10
+        angle_resol = int(angle_resol) #to avoid introduced floats
+        if 360 % angle_resol != 0 or angle_resol<1:
+            print('Invalid resolution, setting value to default --> ',default_resol)
+            angle_resol = default_resol
+        
+        vect_size = int(round(360/angle_resol, 0))
+        sensor_resol = np.empty(vect_size, dtype=object)
+
+        for i in range(1, vect_size):
+            if self.__ranges[(i-1)*angle_resol] != np.inf : #filtering out of range values
+                sensor_resol[i] = self.__ranges[(i-1)*angle_resol]
+        
+        return sensor_resol
 
     def stop(self):
         self.set_vel()
