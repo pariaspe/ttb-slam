@@ -4,13 +4,20 @@ from sensor_msgs.msg import PointCloud2, LaserScan
 from gazebo_msgs.msg import ModelStates
 from laser_geometry import LaserProjection
 
-import math
+from math import sin, cos, radians
+import tf
 
 resolution = 0.1
 global_x = 0
 global_y = 0
+global_yaw = 0
 full_scan = []
 full_scan.append((0,0,0,0,0))
+count = 0
+
+def quat_to_euler(orientation):
+    quat = (orientation.x, orientation.y, orientation.z, orientation.w)
+    return tf.transformations.euler_from_quaternion(quat)  # roll, pitch, yaw
 
 class Laser2PC():
     def __init__(self):
@@ -23,6 +30,7 @@ class Laser2PC():
 
         global full_scan
         global resolution
+        global count
 
         cloud_out = self.laserProj.projectLaser(data)   # Check transformLaserScanToPointCloud()
 
@@ -32,8 +40,17 @@ class Laser2PC():
         for point in point_generator:
             rep_point = False
             angle = point[-1]
-            global_point = (point[0] + global_x, point[1] + global_y, 0, 0, 0)
-    
+            global_point = (global_x + point[0]*cos(global_yaw) - point[1]*sin(global_yaw),
+                            global_y + point[0]*sin(global_yaw) + point[1]*cos(global_yaw),
+                            0, 0, 0)
+            if angle == 400:
+                #print(global_x)
+                #print(sin(global_yaw))
+                print(f'x:{point[0]}')
+                #print(global_y)
+                #print(cos(global_yaw))
+                print(f'y:{point[1]}')
+            count += 1
             for scanned_point in full_scan:
                 dist_x = global_point[0] - scanned_point[0]
                 dist_y = global_point[1] - scanned_point[1]
@@ -49,15 +66,13 @@ class Laser2PC():
     def positionCallback(self, data):    
         global global_x
         global global_y
-        global count2
+        global global_yaw
         #print(type(data.pose[0].position.x))
         robot_idx = data.name.index('turtlebot3_waffle_pi')
         global_x = data.pose[robot_idx].position.x
         global_y = data.pose[robot_idx].position.y
-
-        if count2 == 0:
-            print(global_x)
-            count2 += 1
+        _, _, global_yaw = quat_to_euler(data.pose[robot_idx].orientation)
+        #print(global_yaw)
 
 
 
