@@ -7,7 +7,10 @@ from laser_geometry import LaserProjection
 from math import sin, cos, radians
 import tf
 
-resolution = 0.1
+#import __future__
+#from __future__ import print_function
+
+resolution = 0.2
 global_x = 0
 global_y = 0
 global_yaw = 0
@@ -46,10 +49,10 @@ class Laser2PC():
             if angle == 400:
                 #print(global_x)
                 #print(sin(global_yaw))
-                print(f'x:{point[0]}')
+                print('x:{point[0]}')
                 #print(global_y)
                 #print(cos(global_yaw))
-                print(f'y:{point[1]}')
+                print('y:{point[1]}')
             count += 1
             for scanned_point in full_scan:
                 dist_x = global_point[0] - scanned_point[0]

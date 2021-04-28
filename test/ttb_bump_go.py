@@ -38,7 +38,7 @@ def main():
 
             yaw_rate = random.uniform(-1, 1)  # velocidad aleatoria
             turtle.set_vel(az=yaw_rate)
-            time.sleep(5)  # giro 5 seg
+            time.sleep(2)  # giro 5 seg
             turtle.stop()
             resol_dists = turtle.get_sensor_dist_resol(resol)
             print(list(resol_dists))
