@@ -38,7 +38,7 @@ class Laser2PC():
         cloud_out = self.laserProj.projectLaser(data)   # Check transformLaserScanToPointCloud()
 
         point_generator = pc2.read_points(cloud_out)
-        
+        #point_list = pc2.read_points_list(cloud_out)
     
         for point in point_generator:
             rep_point = False
@@ -46,7 +46,7 @@ class Laser2PC():
             global_point = (global_x + point[0]*cos(global_yaw) - point[1]*sin(global_yaw),
                             global_y + point[0]*sin(global_yaw) + point[1]*cos(global_yaw),
                             0, 0, 0)
-            if angle == 400:
+            if angle == 400: #esto??
                 #print(global_x)
                 #print(sin(global_yaw))
                 print('x:{point[0]}')
@@ -55,7 +55,7 @@ class Laser2PC():
                 print('y:{point[1]}')
             count += 1
             #print(count)
-            for scanned_point in full_scan:
+            for 0 in full_scan:
                 dist_x = global_point[0] - scanned_point[0]
                 dist_y = global_point[1] - scanned_point[1]
                 if abs(dist_x) < resolution and abs(dist_y) < resolution:
@@ -65,8 +65,8 @@ class Laser2PC():
                 
         global_cloud_out = pc2.create_cloud(cloud_out.header, cloud_out.fields, full_scan)
 
-        if count % 1000 == 0: #cada cierto número de iteraciones llamamos a la función de crear mapa
-            print(list(full_scan)) #primera columna parecen las x, segunda las y. Procesar dicha información
+        if count % 1000 == 0: #cada cierto numero de iteraciones llamamos a la funcion de crear mapa
+            print(list(full_scan)) #primera columna parecen las x, segunda las y. Procesar dicha informacion
 
         self.pcPub.publish(global_cloud_out)
         
@@ -83,15 +83,16 @@ class Laser2PC():
         #print(global_yaw)
 
     def pointCloudToMap(self, scan_data):
+        global resolution
         #find max and min value in x and y // Seguramente se pueda hacer todo esto en un par de lineas 
-        X_max = numpy.amax(scan_data[1])
-        X_min = numpy.amin(scan_data[1])
-        Y_max = numpy.amax(scan_data[2])
-        Y_min = numpy.amin(scan_data[2])
-        X_length = math.ceil((X_max - X_min)/resolution) #quizá sea mejor utilizar math.ceil para redondear hacia arriba en vez de round
+        X_max = numpy.amax(scan_data[0])
+        X_min = numpy.amin(scan_data[0])
+        Y_max = numpy.amax(scan_data[1])
+        Y_min = numpy.amin(scan_data[1])
+        X_length = math.ceil((X_max - X_min)/resolution) #quiza sea mejor utilizar math.ceil para redondear hacia arriba en vez de round
         Y_length = math.ceil((Y_max - Y_min)/resolution)
-        map = np.zeros((X_length, Y_length)) #initialize map to zero, then we fill it
-        #todavía no se me ha ocurrido como comprobar los puntos para rellenar la matriz, hay que implementarlo a continuación
+        scanned_map = np.zeros((X_length, Y_length)) #initialize map to zero, then we fill it
+        #todavia no se me ha ocurrido como comprobar los puntos para rellenar la matriz, hay que implementarlo a continuacion
 
 
 
