@@ -4,7 +4,7 @@ from sensor_msgs.msg import PointCloud2, LaserScan
 from gazebo_msgs.msg import ModelStates
 from laser_geometry import LaserProjection
 
-from math import sin, cos, radians
+from math import sin, cos, radians, ceil
 import tf
 
 #import __future__
@@ -54,6 +54,7 @@ class Laser2PC():
                 #print(cos(global_yaw))
                 print('y:{point[1]}')
             count += 1
+            #print(count)
             for scanned_point in full_scan:
                 dist_x = global_point[0] - scanned_point[0]
                 dist_y = global_point[1] - scanned_point[1]
@@ -63,6 +64,10 @@ class Laser2PC():
                 full_scan.append(global_point)
                 
         global_cloud_out = pc2.create_cloud(cloud_out.header, cloud_out.fields, full_scan)
+
+        if count % 1000 == 0: #cada cierto número de iteraciones llamamos a la función de crear mapa
+            print(list(full_scan)) #primera columna parecen las x, segunda las y. Procesar dicha información
+
         self.pcPub.publish(global_cloud_out)
         
 
@@ -77,6 +82,16 @@ class Laser2PC():
         _, _, global_yaw = quat_to_euler(data.pose[robot_idx].orientation)
         #print(global_yaw)
 
+    def pointCloudToMap(self, scan_data):
+        #find max and min value in x and y // Seguramente se pueda hacer todo esto en un par de lineas 
+        X_max = numpy.amax(scan_data[1])
+        X_min = numpy.amin(scan_data[1])
+        Y_max = numpy.amax(scan_data[2])
+        Y_min = numpy.amin(scan_data[2])
+        X_length = math.ceil((X_max - X_min)/resolution) #quizá sea mejor utilizar math.ceil para redondear hacia arriba en vez de round
+        Y_length = math.ceil((Y_max - Y_min)/resolution)
+        map = np.zeros((X_length, Y_length)) #initialize map to zero, then we fill it
+        #todavía no se me ha ocurrido como comprobar los puntos para rellenar la matriz, hay que implementarlo a continuación
 
 
 
