@@ -6,7 +6,7 @@ from laser_geometry import LaserProjection
 
 from math import sin, cos, radians, ceil
 import tf
-
+import numpy
 #import __future__
 #from __future__ import print_function
 
@@ -17,6 +17,7 @@ global_yaw = 0
 full_scan = []
 full_scan.append((0,0,0,0,0))
 count = 0
+scanned_map = np.zeros((100, 100)) #initialize map to zero, then we fill it. Each cell represent a resolution² area
 
 def quat_to_euler(orientation):
     quat = (orientation.x, orientation.y, orientation.z, orientation.w)
@@ -34,6 +35,7 @@ class Laser2PC():
         global full_scan
         global resolution
         global count
+        global scanned_map
 
         cloud_out = self.laserProj.projectLaser(data)   # Check transformLaserScanToPointCloud()
 
@@ -62,6 +64,11 @@ class Laser2PC():
                     rep_point = True
             if not rep_point:
                 full_scan.append(global_point)
+                position_x = round(global_point[0]/resolution, 0) - 1 #position in map equals to rounded distance divided by resolution - 1
+                position_y = round(global_point[1]/resolution, 0) - 1
+                scanned_map[position_x][position_y] = 1 #mark occupied cell
+
+
                 
         global_cloud_out = pc2.create_cloud(cloud_out.header, cloud_out.fields, full_scan)
 
@@ -82,17 +89,26 @@ class Laser2PC():
         _, _, global_yaw = quat_to_euler(data.pose[robot_idx].orientation)
         #print(global_yaw)
 
-    def pointCloudToMap(self, scan_data):
+    def resizeMap(self, scan_data):
         global resolution
+        global scanned_map
         #find max and min value in x and y // Seguramente se pueda hacer todo esto en un par de lineas 
         X_max = numpy.amax(scan_data[0])
         X_min = numpy.amin(scan_data[0])
         Y_max = numpy.amax(scan_data[1])
         Y_min = numpy.amin(scan_data[1])
-        X_length = math.ceil((X_max - X_min)/resolution) #quiza sea mejor utilizar math.ceil para redondear hacia arriba en vez de round
+        X_length = math.ceil((X_max - X_min)/resolution) 
         Y_length = math.ceil((Y_max - Y_min)/resolution)
-        scanned_map = np.zeros((X_length, Y_length)) #initialize map to zero, then we fill it
-        #todavia no se me ha ocurrido como comprobar los puntos para rellenar la matriz, hay que implementarlo a continuacion
+        if  X_length - 1 > len(scanned_map[0]) or Y_length - 1 > len(scanned_map[1]): #if map size is not big enough append rows until it fits
+            newrows = X_length - 1 - len(scanned_map[0])
+            newcols = Y_length - 1 - len(scanned_map[1])
+            if newrows > 0: #now we need to know at what side we stack the new rows
+                scanned_map = np.stack((scanned_map,np.zeros((newrows,len(scanned_map[1])))), axis=0) #to stack on the other side, change stack positions
+                #need to find a way to stack in the correct side
+            if newcols > 0:
+                scanned_map = np.stack((scanned_map,np.zeros((len(scanned_map[0]),newcols))), axis=-1)
+
+
 
 
 
