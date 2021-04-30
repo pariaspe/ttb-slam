@@ -17,7 +17,7 @@ global_yaw = 0
 full_scan = []
 full_scan.append((0,0,0,0,0))
 count = 0
-scanned_map = np.zeros((100, 100)) #initialize map to zero, then we fill it. Each cell represent a resolution² area
+scanned_map = np.zeros((100, 100)) #initialize map to zero, then we fill it. Each cell represent a resolution squared area
 
 def quat_to_euler(orientation):
     quat = (orientation.x, orientation.y, orientation.z, orientation.w)
@@ -57,7 +57,7 @@ class Laser2PC():
                 print('y:{point[1]}')
             count += 1
             #print(count)
-            for 0 in full_scan:
+            for scanned_point in full_scan:
                 dist_x = global_point[0] - scanned_point[0]
                 dist_y = global_point[1] - scanned_point[1]
                 if abs(dist_x) < resolution and abs(dist_y) < resolution:
