@@ -127,5 +127,3 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-src/scan_to_pc copy.py
-src/scan_to_pc_copy.py
