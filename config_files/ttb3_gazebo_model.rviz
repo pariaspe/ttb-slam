@@ -155,6 +155,7 @@ Visualization Manager:
     - Class: rviz/PointCloud2
       Name: ScanPointCloud
       Enabled: true
+      Topic: /laserPointCloud
       Unreliable: false
       Queue Size: 10
       Selectable: true
