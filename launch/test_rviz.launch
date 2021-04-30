@@ -22,4 +22,5 @@
 
   <node pkg="gazebo_ros" type="spawn_model" name="spawn_urdf" args="-urdf -model turtlebot3_$(arg model) -x $(arg x_pos) -y $(arg y_pos) -z $(arg z_pos) -param robot_description" />
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find turtlebot3_gazebo)/rviz/turtlebot3_gazebo_model.rviz"/>
+  <!-- <node name="aitor" pkg="tf2_ros" type="static_transform_publisher" args="5 5 0 3.14 0 0 world odom"/> -->
 </launch>
