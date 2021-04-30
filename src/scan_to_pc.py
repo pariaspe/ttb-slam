@@ -3,14 +3,14 @@ import sensor_msgs.point_cloud2 as pc2
 from sensor_msgs.msg import PointCloud2, LaserScan
 from gazebo_msgs.msg import ModelStates
 from laser_geometry import LaserProjection
+from nav_msgs.msg import OccupancyGrid
+from geometry_msgs.msg import Pose
 
 from math import sin, cos, radians, ceil
 import tf
 import numpy as np
-
-
-RESOLUTION = 0.2
-
+import time
+import os
 
 
 def quat_to_euler(orientation):
@@ -18,6 +18,8 @@ def quat_to_euler(orientation):
     return tf.transformations.euler_from_quaternion(quat)  # roll, pitch, yaw
 
 class Laser2PC():
+    RESOLUTION = 0.2
+
     def __init__(self):
         self.global_x = 0
         self.global_y = 0
@@ -32,9 +34,9 @@ class Laser2PC():
         self.laserSub = rospy.Subscriber("/scan", LaserScan, self.laserCallback)
         self.laserSub = rospy.Subscriber("gazebo/model_states", ModelStates, self.positionCallback)  # TODO: cambiar a /Odom
 
-    def laserCallback(self, data):
-        global RESOLUTION
+        self.occup_grid_pub = rospy.Publisher("/my_map", OccupancyGrid, queue_size=1)
 
+    def laserCallback(self, data):
         cloud_out = self.laserProj.projectLaser(data)   # Check transformLaserScanToPointCloud()
 
         point_generator = pc2.read_points(cloud_out)
@@ -52,12 +54,12 @@ class Laser2PC():
             for scanned_point in self.full_scan:
                 dist_x = global_point[0] - scanned_point[0]
                 dist_y = global_point[1] - scanned_point[1]
-                if abs(dist_x) < RESOLUTION and abs(dist_y) < RESOLUTION:
+                if abs(dist_x) < self.RESOLUTION and abs(dist_y) < self.RESOLUTION:
                     rep_point = True
             if not rep_point:
                 self.full_scan.append(global_point)
-                position_x = int(round(global_point[0]/RESOLUTION, 0) - 1) #position in map equals to rounded distance divided by RESOLUTION - 1
-                position_y = int(round(global_point[1]/RESOLUTION, 0) - 1)
+                position_x = int(round(global_point[0]/self.RESOLUTION, 0) - 1) #position in map equals to rounded distance divided by RESOLUTION - 1
+                position_y = int(round(global_point[1]/self.RESOLUTION, 0) - 1)
                 self.scanned_map[position_x][position_y] = 1 #mark occupied cell
 
 
@@ -78,15 +80,13 @@ class Laser2PC():
         #print(self.global_yaw)
 
     def resizeMap(self, scan_data):
-        global RESOLUTION
-
         #find max and min value in x and y // Seguramente se pueda hacer todo esto en un par de lineas
         X_max = numpy.amax(scan_data[0])
         X_min = numpy.amin(scan_data[0])
         Y_max = numpy.amax(scan_data[1])
         Y_min = numpy.amin(scan_data[1])
-        X_length = math.ceil((X_max - X_min)/RESOLUTION)
-        Y_length = math.ceil((Y_max - Y_min)/RESOLUTION)
+        X_length = math.ceil((X_max - X_min)/self.RESOLUTION)
+        Y_length = math.ceil((Y_max - Y_min)/self.RESOLUTION)
         if  X_length - 1 > len(self.scanned_map[0]) or Y_length - 1 > len(self.scanned_map[1]): #if map size is not big enough append rows until it fits
             newrows = X_length - 1 - len(self.scanned_map[0])
             newcols = Y_length - 1 - len(self.scanned_map[1])
@@ -96,9 +96,18 @@ class Laser2PC():
             if newcols > 0:
                 self.scanned_map = np.stack((self.scanned_map,np.zeros((len(self.scanned_map[0]),newcols))), axis=-1)
 
+    def send_occupancy_grid(self):
+        msg = OccupancyGrid()
+        msg.info.map_load_time.secs = round(time.time())
+        msg.info.resolution = self.RESOLUTION
+        msg.info.width = 100
+        msg.info.height = 100
+        msg.info.origin = Pose()
+        # msg.data = self.scanned_map.tolist()
+        self.occup_grid_pub.publish(msg)
+
     def print_scanned_map(self):
-        global scanned_map
-        for row in scanned_map:
+        for row in self.scanned_map:
             print("".join(map(lambda x: " " if not x else "O",row)))
 
 
@@ -110,6 +119,7 @@ if __name__ == '__main__':
 
     rate = rospy.Rate(1)
     while not rospy.is_shutdown():
-        os.system('clear')
-        l2pc.print_scanned_map()
+        # os.system('clear')
+        # l2pc.print_scanned_map()
+        l2pc.send_occupancy_grid()
         rate.sleep()
