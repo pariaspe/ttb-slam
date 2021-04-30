@@ -28,6 +28,7 @@ class Laser2PC():
         self.full_scan = []
         self.full_scan.append((0,0,0,0,0))
         self.scanned_map = np.zeros((100, 100)) #initialize map to zero, then we fill it. Each cell represent a RESOLUTION squared area
+        self.occupancy_grid = np.ones((100, 100), dtype=np.int)*-1
 
         self.laserProj = LaserProjection()
         self.pcPub = rospy.Publisher("/laserPointCloud", PointCloud2, queue_size=1)
@@ -61,6 +62,7 @@ class Laser2PC():
                 position_x = int(round(global_point[0]/self.RESOLUTION, 0) - 1) #position in map equals to rounded distance divided by RESOLUTION - 1
                 position_y = int(round(global_point[1]/self.RESOLUTION, 0) - 1)
                 self.scanned_map[position_x][position_y] = 1 #mark occupied cell
+                self.occupancy_grid[position_x][position_y] = 100 #mark occupied cell
 
 
         # Create the point cloud from the list
@@ -98,13 +100,15 @@ class Laser2PC():
 
     def send_occupancy_grid(self):
         msg = OccupancyGrid()
+        msg.header.frame_id = "world"
         msg.info.map_load_time.secs = round(time.time())
         msg.info.resolution = self.RESOLUTION
         msg.info.width = 100
         msg.info.height = 100
         msg.info.origin = Pose()
-        # msg.data = self.scanned_map.tolist()
+        msg.data = self.occupancy_grid.ravel().tolist()
         self.occup_grid_pub.publish(msg)
+
 
     def print_scanned_map(self):
         for row in self.scanned_map:
