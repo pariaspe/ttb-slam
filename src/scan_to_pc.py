@@ -18,23 +18,19 @@ def quat_to_euler(orientation):
     return tf.transformations.euler_from_quaternion(quat)  # roll, pitch, yaw
 
 class Laser2PC():
-    RESOLUTION = 0.2
 
     def __init__(self):
         self.global_x = 0
         self.global_y = 0
         self.global_yaw = 0
-        self.width = 100
-        self.height = 100
+        self.width = 200
+        self.height = 200
+        self.RESOLUTION = 0.05
 
         self.full_scan = []
         self.full_scan.append((0,0,0,0,0))
-<<<<<<< HEAD
         self.scanned_map = np.zeros((self.width, self.height)) #initialize map to zero, then we fill it. Each cell represent a RESOLUTION squared area
         self.occupancy_grid = np.ones((self.width, self.height), dtype=np.int)*-1
-=======
-        self.scanned_map = np.zeros((100, 100)) #initialize map to zero, then we fill it. Each cell represent a RESOLUTION squared area
->>>>>>> a68ac0ae84a062a2060abab9ef65f72e0af7d557
 
         self.laserProj = LaserProjection()
         self.pcPub = rospy.Publisher("/laserPointCloud", PointCloud2, queue_size=1)
@@ -65,9 +61,11 @@ class Laser2PC():
                     rep_point = True
             if not rep_point:
                 self.full_scan.append(global_point)
-                position_x = int(round(global_point[0]/self.RESOLUTION, 0) - 1) #position in map equals to rounded distance divided by RESOLUTION - 1
-                position_y = int(round(global_point[1]/self.RESOLUTION, 0) - 1)
+                #position_x = int(round(global_point[0]/self.RESOLUTION, 0) - 1) #position in map equals to rounded distance divided by RESOLUTION - 1
+                #position_y = int(round(global_point[1]/self.RESOLUTION, 0) - 1)
+                position_x, position_y = position2grid(self, global_point[0], global_point[1])
                 self.scanned_map[position_x][position_y] = 1 #mark occupied cell
+                self.occupancy_grid[position_x][position_y] = 100 #mark occupied cell
 
 
         # Create the point cloud from the list
@@ -105,19 +103,25 @@ class Laser2PC():
 
     def send_occupancy_grid(self):
         msg = OccupancyGrid()
+        msg.header.frame_id = "world"
         msg.info.map_load_time.secs = round(time.time())
         msg.info.resolution = self.RESOLUTION
         msg.info.width = self.width
         msg.info.height = self.height
         msg.info.origin = Pose()
-        # msg.data = self.scanned_map.tolist()
+        msg.data = self.occupancy_grid.ravel().tolist()
         self.occup_grid_pub.publish(msg)
+
 
     def print_scanned_map(self):
         for row in self.scanned_map:
             print("".join(map(lambda x: " " if not x else "O",row)))
 
-
+    # THIS FUNCTION ADAPTS REAL DISTANCES TO ITS CORRESPONDENT GRID POSITION
+    def position2grid(self, X, Y): 
+        position_x = int(round(X/self.RESOLUTION, 0) - 1)
+        position_y = int(round(Y/self.RESOLUTION, 0) - 1)
+        return(position_x, position_y)
 
 if __name__ == '__main__':
     rospy.init_node("laser2PointCloud")
