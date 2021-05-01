@@ -6,6 +6,8 @@ from laser_geometry import LaserProjection
 from nav_msgs.msg import OccupancyGrid
 from geometry_msgs.msg import Pose
 
+from ttb_slam import MyTurtlebot
+
 from math import sin, cos, radians, ceil
 import tf
 import numpy as np
@@ -19,25 +21,37 @@ def quat_to_euler(orientation):
 
 class Laser2PC():
 
+    #To obtain pose from turtlebot's odometry
+    #turtle = MyTurtlebot()
+    #self.robot_pose = turtle.get_estimated_pose()
+
     def __init__(self):
         self.global_x = 0
         self.global_y = 0
         self.global_yaw = 0
         self.width = 200
         self.height = 200
-        self.RESOLUTION = 0.05
+        self.RESOLUTION = 0.1
 
         self.full_scan = []
         self.full_scan.append((0,0,0,0,0))
         self.scanned_map = np.zeros((self.width, self.height)) #initialize map to zero, then we fill it. Each cell represent a RESOLUTION squared area
         self.occupancy_grid = np.ones((self.width, self.height), dtype=np.int)*-1
-
+        
         self.laserProj = LaserProjection()
         self.pcPub = rospy.Publisher("/laserPointCloud", PointCloud2, queue_size=1)
         self.laserSub = rospy.Subscriber("/scan", LaserScan, self.laserCallback)
         self.laserSub = rospy.Subscriber("gazebo/model_states", ModelStates, self.positionCallback)  # TODO: cambiar a /Odom
 
         self.occup_grid_pub = rospy.Publisher("/my_map", OccupancyGrid, queue_size=1)
+
+    # THIS FUNCTION ADAPTS REAL DISTANCES TO ITS CORRESPONDENT GRID POSITION
+    def position_2_grid(self, X, Y): 
+        position = []
+        position[0] = int(round(X/self.RESOLUTION, 0) - 1)
+        position[1] = int(round(Y/self.RESOLUTION, 0) - 1)
+        
+        return(position)
 
     def laserCallback(self, data):
         cloud_out = self.laserProj.projectLaser(data)   # Check transformLaserScanToPointCloud()
@@ -61,11 +75,21 @@ class Laser2PC():
                     rep_point = True
             if not rep_point:
                 self.full_scan.append(global_point)
-                #position_x = int(round(global_point[0]/self.RESOLUTION, 0) - 1) #position in map equals to rounded distance divided by RESOLUTION - 1
-                #position_y = int(round(global_point[1]/self.RESOLUTION, 0) - 1)
-                position_x, position_y = position2grid(self, global_point[0], global_point[1])
+                #position = []
+                position_x = int(round(global_point[0]/self.RESOLUTION, 0) - 1) #position in map equals to rounded distance divided by RESOLUTION - 1
+                position_y = int(round(global_point[1]/self.RESOLUTION, 0) - 1)
+                #position = position_2_grid(self, global_point[0], global_point[1])
                 self.scanned_map[position_x][position_y] = 1 #mark occupied cell
                 self.occupancy_grid[position_x][position_y] = 100 #mark occupied cell
+                #MARK NEIGHBOURS WITH 50% PROB
+                if  self.occupancy_grid[int(position_x+1), int(position_y)]   < int(1):
+                    self.occupancy_grid[int(position_x+1), int(position_y)]   = int(50)
+                if  self.occupancy_grid[int(position_x), int(position_y+1)] < int(1):
+                    self.occupancy_grid[int(position_x), int(position_y+1)] = int(50)
+                if  self.occupancy_grid[int(position_x-1), int(position_y)]   < int(1):
+                    self.occupancy_grid[int(position_x-1), int(position_y)]   = int(50)
+                if  self.occupancy_grid[int(position_x), int(position_y-1)] < int(1):
+                    self.occupancy_grid[int(position_x), int(position_y-1)] = int(50)
 
 
         # Create the point cloud from the list
@@ -117,11 +141,7 @@ class Laser2PC():
         for row in self.scanned_map:
             print("".join(map(lambda x: " " if not x else "O",row)))
 
-    # THIS FUNCTION ADAPTS REAL DISTANCES TO ITS CORRESPONDENT GRID POSITION
-    def position2grid(self, X, Y): 
-        position_x = int(round(X/self.RESOLUTION, 0) - 1)
-        position_y = int(round(Y/self.RESOLUTION, 0) - 1)
-        return(position_x, position_y)
+
 
 if __name__ == '__main__':
     rospy.init_node("laser2PointCloud")
