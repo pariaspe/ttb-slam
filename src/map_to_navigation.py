@@ -13,4 +13,4 @@ class MyNavigator:
         self.map_sub = rospy.Subscriber('/topic_name', OccupancyGrid, self.Navigator)
 
     def Navigator(self):
-        
+        pass

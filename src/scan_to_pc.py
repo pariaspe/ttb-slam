@@ -6,7 +6,7 @@ from laser_geometry import LaserProjection
 from nav_msgs.msg import OccupancyGrid
 from geometry_msgs.msg import Pose
 
-from ttb_slam import MyTurtlebot
+from ttb_slam.turtlebot_control import MyTurtlebot
 
 from math import sin, cos, radians, ceil
 import tf
