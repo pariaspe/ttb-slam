@@ -1,12 +1,13 @@
 import rospy
 import sensor_msgs.point_cloud2 as pc2
 from sensor_msgs.msg import PointCloud2, LaserScan
-from gazebo_msgs.msg import ModelStates
+from nav_msgs.msg import Odometry
+#from gazebo_msgs.msg import ModelStates
 from laser_geometry import LaserProjection
 from nav_msgs.msg import OccupancyGrid
 from geometry_msgs.msg import Pose
 
-from ttb_slam.turtlebot_control import MyTurtlebot
+#from ttb_slam.turtlebot_control import MyTurtlebot
 
 from math import sin, cos, radians, ceil, pi
 import tf
@@ -21,14 +22,7 @@ def quat_to_euler(orientation):
 
 class Laser2PC():
 
-    #To obtain pose from turtlebot's odometry
-    #turtle = MyTurtlebot()
-    
-
     def __init__(self):
-
-        #self.robot_pose = turtle.get_estimated_pose()
-        #print(self.robot_pose)
 
         self.global_x = 0
         self.global_y = 0
@@ -45,7 +39,7 @@ class Laser2PC():
         self.laserProj = LaserProjection()
         self.pcPub = rospy.Publisher("/laserPointCloud", PointCloud2, queue_size=1)
         self.laserSub = rospy.Subscriber("/scan", LaserScan, self.laserCallback)
-        self.laserSub = rospy.Subscriber("gazebo/model_states", ModelStates, self.positionCallback)  # TODO: cambiar a /Odom
+        self.laserSub = rospy.Subscriber("/odom", Odometry, self.positionCallback)
 
         self.occup_grid_pub = rospy.Publisher("/my_map", OccupancyGrid, queue_size=1)
 
@@ -103,14 +97,17 @@ class Laser2PC():
 
         self.pcPub.publish(global_cloud_out)    # publish the pc
 
-
+    
     def positionCallback(self, data):
-        #print(type(data.pose[0].position.x))
-        robot_idx = data.name.index('turtlebot3_waffle_pi')
-        self.global_x = data.pose[robot_idx].position.x
-        self.global_y = data.pose[robot_idx].position.y
-        _, _, self.global_yaw = quat_to_euler(data.pose[robot_idx].orientation)
-        #print(self.global_yaw)
+        self.global_x = data.pose.pose.position.x
+        self.global_y = data.pose.pose.position.y
+        _, _, self.global_yaw = quat_to_euler(data.pose.pose.orientation)
+        #robot_idx = data.name.index('turtlebot3_waffle_pi')
+        #self.global_x = data.pose[robot_idx].position.x
+        #self.global_y = data.pose[robot_idx].position.y
+        #_, _, self.global_yaw = quat_to_euler(data.pose[robot_idx].orientation)
+       
+    
 
     def resizeMap(self, scan_data):
         #find max and min value in x and y // Seguramente se pueda hacer todo esto en un par de lineas
@@ -137,11 +134,15 @@ class Laser2PC():
         msg.info.width = self.width
         msg.info.height = self.height
         msg.info.origin = Pose()
+
+        # Set the origin of the occupancy grid to fit the map
         grid_orientation = tf.transformations.quaternion_from_euler(pi, 0, pi/2)
+        
         msg.info.origin.orientation.x = grid_orientation[0]
         msg.info.origin.orientation.y = grid_orientation[1]
         msg.info.origin.orientation.z = grid_orientation[2]
         msg.info.origin.orientation.w = grid_orientation[3]
+
         msg.data = self.occupancy_grid.ravel().tolist()
         self.occup_grid_pub.publish(msg)
 
