@@ -160,14 +160,22 @@ Visualization Manager:
       Queue Size: 10
       Selectable: true
       Style: Points
-      Size: 0,03
+      Size: 3
       Alpha: 1
       Decay Time: 1
+    - Class: rviz/Map
+      Name: MyMap
+      Topic: /my_map
+      Enabled: true
+      Alpha: 0.7 
+      Color Scheme: map
+      Draw Behind: false
+
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: odom
+    Fixed Frame: world
     Frame Rate: 30
   Name: root
   Tools:

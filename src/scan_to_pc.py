@@ -8,7 +8,7 @@ from geometry_msgs.msg import Pose
 
 from ttb_slam.turtlebot_control import MyTurtlebot
 
-from math import sin, cos, radians, ceil
+from math import sin, cos, radians, ceil, pi
 import tf
 import numpy as np
 import time
@@ -23,9 +23,13 @@ class Laser2PC():
 
     #To obtain pose from turtlebot's odometry
     #turtle = MyTurtlebot()
-    #self.robot_pose = turtle.get_estimated_pose()
+    
 
     def __init__(self):
+
+        #self.robot_pose = turtle.get_estimated_pose()
+        #print(self.robot_pose)
+
         self.global_x = 0
         self.global_y = 0
         self.global_yaw = 0
@@ -127,12 +131,17 @@ class Laser2PC():
 
     def send_occupancy_grid(self):
         msg = OccupancyGrid()
-        msg.header.frame_id = "world"
+        msg.header.frame_id = "map"
         msg.info.map_load_time.secs = round(time.time())
         msg.info.resolution = self.RESOLUTION
         msg.info.width = self.width
         msg.info.height = self.height
         msg.info.origin = Pose()
+        grid_orientation = tf.transformations.quaternion_from_euler(pi, 0, pi/2)
+        msg.info.origin.orientation.x = grid_orientation[0]
+        msg.info.origin.orientation.y = grid_orientation[1]
+        msg.info.origin.orientation.z = grid_orientation[2]
+        msg.info.origin.orientation.w = grid_orientation[3]
         msg.data = self.occupancy_grid.ravel().tolist()
         self.occup_grid_pub.publish(msg)
 
