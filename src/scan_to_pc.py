@@ -29,7 +29,8 @@ class Laser2PC():
         self.global_yaw = 0
         self.width = 200
         self.height = 200
-        self.RESOLUTION = 0.1
+        self.RESOLUTION = 0.2
+        self.robot_in_grid = [0, 0]
 
         self.full_scan = []
         self.full_scan.append((0,0,0,0,0))
@@ -46,16 +47,23 @@ class Laser2PC():
     # THIS FUNCTION ADAPTS REAL DISTANCES TO ITS CORRESPONDENT GRID POSITION
     def position_2_grid(self, X, Y): 
         position = []
-        position[0] = int(round(X/self.RESOLUTION, 0) - 1)
-        position[1] = int(round(Y/self.RESOLUTION, 0) - 1)
-        
+        #position[0] = int(round(X/self.RESOLUTION, 0) - 1)
+        #position[1] = int(round(Y/self.RESOLUTION, 0) - 1)
+        position = [int(round(X/self.RESOLUTION, 0) - 1), int(round(Y/self.RESOLUTION, 0) - 1)]
         return(position)
+
+    def free_to_map(self, robot_position, range, angle):
+        
 
     def laserCallback(self, data):
         cloud_out = self.laserProj.projectLaser(data)   # Check transformLaserScanToPointCloud()
 
         point_generator = pc2.read_points(cloud_out)
         #point_list = pc2.read_points_list(cloud_out)
+        
+        #self.robot_in_grid = position_2_grid(self.global_x, self.global_y)
+        #self.occupancy_grid[robot_in_grid[0], robot_in_grid[1]] = 1
+        self.occupancy_grid[int(round(self.global_x/self.RESOLUTION, 0) - 1), int(round(self.global_y/self.RESOLUTION, 0) - 1)] = 1
 
         for point in point_generator:
             rep_point = False
@@ -73,21 +81,21 @@ class Laser2PC():
                     rep_point = True
             if not rep_point:
                 self.full_scan.append(global_point)
-                #position = []
-                position_x = int(round(global_point[0]/self.RESOLUTION, 0) - 1) #position in map equals to rounded distance divided by RESOLUTION - 1
-                position_y = int(round(global_point[1]/self.RESOLUTION, 0) - 1)
-                #position = position_2_grid(self, global_point[0], global_point[1])
-                self.scanned_map[position_x][position_y] = 1 #mark occupied cell
-                self.occupancy_grid[position_x][position_y] = 100 #mark occupied cell
+                #position_x = int(round(global_point[0]/self.RESOLUTION, 0) - 1) #position in map equals to rounded distance divided by RESOLUTION - 1
+                #position_y = int(round(global_point[1]/self.RESOLUTION, 0) - 1)
+                position = self.position_2_grid(global_point[0], global_point[1])
+                                                
+                self.scanned_map[position[0]][position[1]] = 1 #mark occupied cell
+                self.occupancy_grid[position[0]][position[1]] = 100 #mark occupied cell
                 #MARK NEIGHBOURS WITH 50% PROB
-                if  self.occupancy_grid[int(position_x+1), int(position_y)]   < int(1):
-                    self.occupancy_grid[int(position_x+1), int(position_y)]   = int(50)
-                if  self.occupancy_grid[int(position_x), int(position_y+1)] < int(1):
-                    self.occupancy_grid[int(position_x), int(position_y+1)] = int(50)
-                if  self.occupancy_grid[int(position_x-1), int(position_y)]   < int(1):
-                    self.occupancy_grid[int(position_x-1), int(position_y)]   = int(50)
-                if  self.occupancy_grid[int(position_x), int(position_y-1)] < int(1):
-                    self.occupancy_grid[int(position_x), int(position_y-1)] = int(50)
+                if  self.occupancy_grid[int(position[0]+1), int(position[1])]   < int(1):
+                    self.occupancy_grid[int(position[0]+1), int(position[1])]   = int(50)
+                if  self.occupancy_grid[int(position[0]), int(position[1]+1)] < int(1):
+                    self.occupancy_grid[int(position[0]), int(position[1]+1)] = int(50)
+                if  self.occupancy_grid[int(position[0]-1), int(position[1])]   < int(1):
+                    self.occupancy_grid[int(position[0]-1), int(position[1])]   = int(50)
+                if  self.occupancy_grid[int(position[0]), int(position[1]-1)] < int(1):
+                    self.occupancy_grid[int(position[0]), int(position[1]-1)] = int(50)
 
 
         # Create the point cloud from the list
@@ -106,7 +114,7 @@ class Laser2PC():
         #self.global_x = data.pose[robot_idx].position.x
         #self.global_y = data.pose[robot_idx].position.y
         #_, _, self.global_yaw = quat_to_euler(data.pose[robot_idx].orientation)
-       
+        #print('Position X:', self.global_x,'Position Y:', self.global_y,'Angle:', self.global_yaw)
     
 
     def resizeMap(self, scan_data):
