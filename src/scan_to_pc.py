@@ -9,7 +9,7 @@ from geometry_msgs.msg import Pose
 
 #from ttb_slam.turtlebot_control import MyTurtlebot
 
-from math import sin, cos, radians, ceil, pi
+from math import sin, cos, tan, radians, ceil, pi
 import tf
 import numpy as np
 import time
@@ -27,9 +27,10 @@ class Laser2PC():
         self.global_x = 0
         self.global_y = 0
         self.global_yaw = 0
-        self.width = 200
-        self.height = 200
-        self.RESOLUTION = 0.2
+        self.global_ang_z = 0
+        self.RESOLUTION = 0.05
+        self.width = int(20/self.RESOLUTION)
+        self.height = int(20/self.RESOLUTION)
         self.robot_in_grid = [0, 0]
 
         self.full_scan = []
@@ -52,8 +53,71 @@ class Laser2PC():
         position = [int(round(X/self.RESOLUTION, 0) - 1), int(round(Y/self.RESOLUTION, 0) - 1)]
         return(position)
 
-    def free_to_map(self, robot_position, range, angle):
+    def free_to_map(self):
+        self.robot_in_grid = self.position_2_grid(self.global_x, self.global_y)
+        for i in range(self.robot_in_grid[0] - 1, self.robot_in_grid[0] + 3):
+            for j in range(self.robot_in_grid[1] - 1, self.robot_in_grid[1] + 3):
+                self.occupancy_grid[i, j] = 0
+
+    def free_2_grid(self, robot_position, detection_list):
+        #line equation from range and angle
+        points_listed = np.zeros((360, 10, 2))
+        for i in (0,359):
+            points_listed = self.BresenhamAlgorithm(robot_position, detection_list[i])
+            #No se si se puede comprobar de golpe para todos los valores, sino utilizar bucle for:
+            # if self.occupancy_grid[points_listed[0],points_listed[1]] == -1: #if unknown, visited
+            #     self.occupancy_grid[points_listed[0],points_listed[1]] = 0
+            # elif self.occupancy_grid[points_listed[0],points_listed[1]] < 90: #if not 100% sure, subtract 50
+            #     self.occupancy_grid[points_listed[0],points_listed[1]] -= 50
+            
+            for j in len(points_listed):
+                if self.occupancy_grid[points_listed[j, 0],points_listed[j, 1]] == -1: #if unknown, visited
+                    self.occupancy_grid[points_listed[j, 0],points_listed[j, 1]] = 0
+                elif self.occupancy_grid[points_listed[j, 0],points_listed[j, 1]] < 90: #if not 100% sure, subtract 50
+                    self.occupancy_grid[points_listed[j, 0],points_listed[j, 1]] -= 50
+
         
+
+    #Bresenham Algorithm allows alliasing with integers only, useful to find cells in a line    
+    def BresenhamAlgorithm(self, start, end):
+        x1, y1 = start
+        x2, y2 = end
+
+        dx = x2 - x1
+        dy = y2 - y1
+
+        steep = abs(dy) - abs(dx)
+        if steep:
+            x1, y1 = y1, x1
+            x2, y2 = y2, x2
+        
+        swapped = x1 > x2
+        if swapped:
+            x1, x2 = x2, x1
+            y1, y2 = y2, y1
+        #quizá se pueda hacer abs desde el principio
+        dx = x2 - x1
+        dy = y2 - y1
+
+        error = int(dx/2)
+        ystep = 1 if y1 < y2 else -1
+
+        y = y1
+        points = []
+        for x in range(x1, x2 + 1):
+            coord = (y, x) if is_steep else (x, y)
+            points.append(coord)
+            error -= abs(dy)
+            if error < 0:
+                y += ystep
+                error += dx
+        
+        if swapped:
+            points.reverse
+        
+        return(points)
+
+
 
     def laserCallback(self, data):
         cloud_out = self.laserProj.projectLaser(data)   # Check transformLaserScanToPointCloud()
@@ -61,9 +125,9 @@ class Laser2PC():
         point_generator = pc2.read_points(cloud_out)
         #point_list = pc2.read_points_list(cloud_out)
         
-        #self.robot_in_grid = position_2_grid(self.global_x, self.global_y)
-        #self.occupancy_grid[robot_in_grid[0], robot_in_grid[1]] = 1
-        self.occupancy_grid[int(round(self.global_x/self.RESOLUTION, 0) - 1), int(round(self.global_y/self.RESOLUTION, 0) - 1)] = 1
+        #self.robot_in_grid = self.position_2_grid(self.global_x, self.global_y)
+        #self.occupancy_grid[self.robot_in_grid[0], self.robot_in_grid[1]] = 1
+        self.free_to_map()
 
         for point in point_generator:
             rep_point = False
@@ -79,7 +143,8 @@ class Laser2PC():
                 dist_y = global_point[1] - scanned_point[1]
                 if abs(dist_x) < self.RESOLUTION and abs(dist_y) < self.RESOLUTION:
                     rep_point = True
-            if not rep_point:
+
+            if not rep_point and abs(self.global_ang_z) == 0.0: #avoid mapping while turning to avoid additional rotational error
                 self.full_scan.append(global_point)
                 #position_x = int(round(global_point[0]/self.RESOLUTION, 0) - 1) #position in map equals to rounded distance divided by RESOLUTION - 1
                 #position_y = int(round(global_point[1]/self.RESOLUTION, 0) - 1)
@@ -87,15 +152,27 @@ class Laser2PC():
                                                 
                 self.scanned_map[position[0]][position[1]] = 1 #mark occupied cell
                 self.occupancy_grid[position[0]][position[1]] = 100 #mark occupied cell
-                #MARK NEIGHBOURS WITH 50% PROB
+                #MARK NEIGHBOURS WITH 50% PROB // add 20% probability if not 100% probability
                 if  self.occupancy_grid[int(position[0]+1), int(position[1])]   < int(1):
                     self.occupancy_grid[int(position[0]+1), int(position[1])]   = int(50)
+                elif self.occupancy_grid[int(position[0]+1), int(position[1])]   < int(90):
+                    self.occupancy_grid[int(position[0]+1), int(position[1])]   += int(20)
+                
                 if  self.occupancy_grid[int(position[0]), int(position[1]+1)] < int(1):
                     self.occupancy_grid[int(position[0]), int(position[1]+1)] = int(50)
+                elif self.occupancy_grid[int(position[0]), int(position[1]+1)]   < int(90):
+                    self.occupancy_grid[int(position[0]), int(position[1]+1)]   += int(20)
+                
                 if  self.occupancy_grid[int(position[0]-1), int(position[1])]   < int(1):
                     self.occupancy_grid[int(position[0]-1), int(position[1])]   = int(50)
+                elif self.occupancy_grid[int(position[0]-1), int(position[1])]   < int(90):
+                    self.occupancy_grid[int(position[0]-1), int(position[1])]   += int(20)
+                
                 if  self.occupancy_grid[int(position[0]), int(position[1]-1)] < int(1):
                     self.occupancy_grid[int(position[0]), int(position[1]-1)] = int(50)
+                elif self.occupancy_grid[int(position[0]), int(position[1]-1)]   < int(90):
+                    self.occupancy_grid[int(position[0]), int(position[1]-1)]   += int(20)
+                
 
 
         # Create the point cloud from the list
@@ -110,12 +187,8 @@ class Laser2PC():
         self.global_x = data.pose.pose.position.x
         self.global_y = data.pose.pose.position.y
         _, _, self.global_yaw = quat_to_euler(data.pose.pose.orientation)
-        #robot_idx = data.name.index('turtlebot3_waffle_pi')
-        #self.global_x = data.pose[robot_idx].position.x
-        #self.global_y = data.pose[robot_idx].position.y
-        #_, _, self.global_yaw = quat_to_euler(data.pose[robot_idx].orientation)
-        #print('Position X:', self.global_x,'Position Y:', self.global_y,'Angle:', self.global_yaw)
-    
+        self.global_ang_z = round(data.twist.twist.angular.z,2)
+       
 
     def resizeMap(self, scan_data):
         #find max and min value in x and y // Seguramente se pueda hacer todo esto en un par de lineas
@@ -166,7 +239,7 @@ if __name__ == '__main__':
     rospy.loginfo("Node initialized")
     l2pc = Laser2PC()
 
-    rate = rospy.Rate(1)
+    rate = rospy.Rate(10)
     while not rospy.is_shutdown():
         # os.system('clear')
         # l2pc.print_scanned_map()
