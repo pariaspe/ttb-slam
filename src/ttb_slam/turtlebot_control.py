@@ -38,6 +38,10 @@ class MyTurtlebot:
     def get_frontal_dist(self):
         dist = self.__ranges[-22:] + self.__ranges[:23]  # from -22.5 to 22.5
         return dist
+    
+    def get_all_dist(self):
+        dists = self.__ranges
+        return dists
 
     def set_vel(self, vx=0, vy=0, vz=0, ax=0, ay=0, az=0):
         vel_msg = Twist()
