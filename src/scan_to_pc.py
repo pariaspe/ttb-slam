@@ -76,8 +76,6 @@ class Laser2PC():
                 elif self.occupancy_grid[points_listed[j, 0],points_listed[j, 1]] < 90: #if not 100% sure, subtract 50
                     self.occupancy_grid[points_listed[j, 0],points_listed[j, 1]] -= 50
 
-        
-
     #Bresenham Algorithm allows alliasing with integers only, useful to find cells in a line    
     def BresenhamAlgorithm(self, start, end):
         x1, y1 = start
