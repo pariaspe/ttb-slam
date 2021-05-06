@@ -1,5 +1,5 @@
 import time
-from ttb_slam import MyTurtlebot
+from ttb_slam.turtlebot_control import MyTurtlebot
 import random
 import tf
 from math import sin, cos

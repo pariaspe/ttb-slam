@@ -53,7 +53,7 @@ class Laser2PC():
         return(position)
 
     def free_to_map(self, robot_position, range, angle):
-        
+        pass
 
     def laserCallback(self, data):
         cloud_out = self.laserProj.projectLaser(data)   # Check transformLaserScanToPointCloud()
