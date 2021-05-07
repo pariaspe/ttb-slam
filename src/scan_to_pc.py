@@ -35,17 +35,16 @@ def polar_to_geom(ang, dist):
 def BresenhamAlgorithm(start, end):
     x1, y1 = start
     x2, y2 = end
-    # x2 -= 1
-    # y2 -= 1
+    correction = int(1)
     # to eliminate the point actually detected
     if x1 < x2:
-        x2 -= 1
+        x2 -= correction
     else:
-        x2 += 1
+        x2 += correction
     if y1 < y2:
-        y2 -= 1
+        y2 -= correction
     else:
-        y2 += 1
+        y2 += correction
 
     dx = x2 - x1
     dy = y2 - y1
@@ -82,9 +81,8 @@ def BresenhamAlgorithm(start, end):
 
     if swapped:
         points.reverse
-    #Eliminar los ultimos puntos almacenados (max range es objeto) 
+    
     return points
-
 
 class Laser2PC():
 
@@ -115,12 +113,7 @@ class Laser2PC():
         return [int(round(x/self.RESOLUTION, 0) - 1),
                 int(round(y/self.RESOLUTION, 0) - 1)]
 
-    def free_to_map(self):
-        self.robot_in_grid = self.position_2_grid(self.global_x, self.global_y)
-        for i in range(self.robot_in_grid[0] - 1, self.robot_in_grid[0] + 3):
-            for j in range(self.robot_in_grid[1] - 1, self.robot_in_grid[1] + 3):
-                self.occupancy_grid[i, j] = 0
-
+    
     def free_2_grid(self, laser_ranges, max_rng):
         robot_pos = self.position_2_grid(self.global_x, self.global_y)
 
@@ -145,11 +138,7 @@ class Laser2PC():
         cloud_out = self.laserProj.projectLaser(data)   # Check transformLaserScanToPointCloud()
 
         point_generator = pc2.read_points(cloud_out)
-        #point_list = pc2.read_points_list(cloud_out)
-
-        #self.robot_in_grid = self.position_2_grid(self.global_x, self.global_y)
-        #self.occupancy_grid[self.robot_in_grid[0], self.robot_in_grid[1]] = 1
-        self.free_to_map()
+        
         if abs(self.global_ang_z) == 0.0:
             self.free_2_grid(data.ranges, data.range_max)
 
@@ -170,8 +159,6 @@ class Laser2PC():
 
             if not rep_point and abs(self.global_ang_z) == 0.0: #avoid mapping while turning to avoid additional rotational error
                 self.full_scan.append(global_point)
-                #position_x = int(round(global_point[0]/self.RESOLUTION, 0) - 1) #position in map equals to rounded distance divided by RESOLUTION - 1
-                #position_y = int(round(global_point[1]/self.RESOLUTION, 0) - 1)
                 position = self.position_2_grid(global_point[0], global_point[1])
 
                 self.scanned_map[position[0]][position[1]] = 1 #mark occupied cell
