@@ -1,7 +1,8 @@
+#!/usr/bin/env python
+
 import rospy
 from sensor_msgs.msg import LaserScan
-from nav_msgs.msg import Odometry
-from nav_msgs.msg import OccupancyGrid
+from nav_msgs.msg import Odometry, OccupancyGrid
 from geometry_msgs.msg import Pose
 
 from math import sin, cos, radians, pi, degrees
@@ -132,8 +133,13 @@ class MapGrid:
 
 class Laser2Grid:
     RESOLUTION = 0.05
+    GRID_RATE = 100000000  # 0.1 secs
 
-    def __init__(self):
+    def __init__(self, headless=False):
+        if not headless:
+            rospy.init_node("Laser2Grid")
+            rospy.loginfo("Node initialized")
+
         self.global_x = 0
         self.global_y = 0
         self.global_yaw = 0
@@ -147,6 +153,7 @@ class Laser2Grid:
         self.laserSub = rospy.Subscriber("/odom", Odometry, self.position_cb)
 
         self.occup_grid_pub = rospy.Publisher("/my_map", OccupancyGrid, queue_size=1)
+        self.grid_timer = rospy.Timer(rospy.Duration(nsecs=self.GRID_RATE), self.send_occupancy_grid)
 
     def position_2_grid(self, x, y):
         """Translates real pose to grid position"""
@@ -183,17 +190,11 @@ class Laser2Grid:
         _, _, self.global_yaw = quat_to_euler(data.pose.pose.orientation)
         self.global_ang_z = round(data.twist.twist.angular.z, 2)
 
-    def send_occupancy_grid(self):
+    def send_occupancy_grid(self, event):
         """Publish OccupancyGrid map"""
         self.occup_grid_pub.publish(self.grid_map.to_msg())
 
 
 if __name__ == '__main__':
-    rospy.init_node("Laser2Grid")
-    rospy.loginfo("Node initialized")
     l2pc = Laser2Grid()
-
-    rate = rospy.Rate(10)
-    while not rospy.is_shutdown():
-        l2pc.send_occupancy_grid()
-        rate.sleep()
+    rospy.spin()
