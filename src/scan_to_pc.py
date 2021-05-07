@@ -35,6 +35,17 @@ def polar_to_geom(ang, dist):
 def BresenhamAlgorithm(start, end):
     x1, y1 = start
     x2, y2 = end
+    # x2 -= 1
+    # y2 -= 1
+    # to eliminate the point actually detected
+    if x1 < x2:
+        x2 -= 1
+    else:
+        x2 += 1
+    if y1 < y2:
+        y2 -= 1
+    else:
+        y2 += 1
 
     dx = x2 - x1
     dy = y2 - y1
@@ -46,6 +57,8 @@ def BresenhamAlgorithm(start, end):
 
     swapped = x1 > x2
     if swapped:
+        # x2 += 2
+        # y2 += 2
         x1, x2 = x2, x1
         y1, y2 = y2, y1
 
@@ -58,7 +71,8 @@ def BresenhamAlgorithm(start, end):
 
     y = y1
     points = []
-    for x in range(x1, x2 + 1):
+    #for x in range(x1, x2 + 1):
+    for x in range(x1, x2):
         coord = (y, x) if steep else (x, y)
         points.append(coord)
         error -= abs(dy)
@@ -68,7 +82,7 @@ def BresenhamAlgorithm(start, end):
 
     if swapped:
         points.reverse
-
+    #Eliminar los ultimos puntos almacenados (max range es objeto) 
     return points
 
 
@@ -120,8 +134,10 @@ class Laser2PC():
         for p in set(points):
             if self.occupancy_grid[p[0], p[1]] == -1:  # unknown --> visited
                 self.occupancy_grid[p[0], p[1]] = 0
-            # elif self.occupancy_grid[p[0], p[1]] < 90:  # not 100% sure --> substract 50
-                # self.occupancy_grid[p[0], p[1]] -= 50
+            elif self.occupancy_grid[p[0], p[1]] < 90 and self.occupancy_grid[p[0], p[1]] >= 50:  # not 100% sure --> substract 50
+                self.occupancy_grid[p[0], p[1]] -= 30
+            if self.occupancy_grid[p[0], p[1]] < 50 and self.occupancy_grid[p[0], p[1]] >= 10:  # unknown --> visited
+                self.occupancy_grid[p[0], p[1]] -= 10
                 # TODO: da error al tener valores negativos (menores a cero)
 
 
