@@ -22,7 +22,7 @@ def detect_wall(ranges):
     return idx_min
 
 def bug_initialization(turtle):
-    resolution = 1  # Resolution of the advancing angle
+    res = 2  # Resolution of the advancing angle
     angle = 90      # Angle in which it is wanted to advance
     wall_idx = 0
     while wall_idx not in range(angle-res, angle + res + 1):
@@ -35,7 +35,7 @@ def bug_initialization(turtle):
         
         turtle.set_vel(az=0.2)  # Rotate until parallel to the wall
         time.sleep(0.05)
-        print(wall_idx)
+        #print(wall_idx)
     turtle.stop()
 
 
@@ -46,7 +46,9 @@ def main():
     turtle = MyTurtlebot()
     time.sleep(2)
 
-    
+    initial_position = turtle.get_estimated_pose().position
+
+    wall_angle = 10
     bug_initialized = False
     while turtle.is_running():
         pose = turtle.get_estimated_pose()
@@ -60,8 +62,33 @@ def main():
         turtle.set_vel(vx=0.3)
         wall_dist = full_distances[90]
 
+        if full_distances[0] < 0.8: # wall in front
+            turtle.stop()   # Stop turtle
+            wall_side = math.sqrt(full_distances[-wall_angle]**2 + full_distances[0]**2 - 2*full_distances[-wall_angle]*full_distances[0]*math.cos(math.radians(wall_angle)))
+            angle = round((360 - math.degrees(math.asin((full_distances[-wall_angle]*math.sin(math.radians(wall_angle)))/wall_side)*2))/2)
 
-    print("Test Finished")
+            #print(f'angle: {angle}, distance x+10: {full_distances[-wall_angle]}, sin 10: {math.sin(math.radians(wall_angle))}, wall side: {wall_side}')
+
+            initial_orientation = pose.orientation.z
+            turtle_orientation = initial_orientation
+            while math.degrees(abs(turtle_orientation - initial_orientation)) < angle:
+                turtle.set_vel(az=-0.3)
+                time.sleep(0.05)
+                turtle.stop()
+                turtle_orientation = turtle.get_estimated_pose().orientation.z
+                print(f'{turtle_orientation}, {math.degrees(initial_orientation)})')
+        
+        if False: # gap on side
+            pass
+        
+        # Check whether the ttb arrived to the initial position
+        current_position = turtle.get_estimated_pose().position
+        if current_position.x - initial_position.x < error and current_position.y - initial_position.y < error:
+            turtle.stop()
+            break
+
+
+    print("Exploration Finished")
 
 if __name__ == "__main__":
     main()
