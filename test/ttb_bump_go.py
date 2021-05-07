@@ -3,13 +3,14 @@ from ttb_slam import MyTurtlebot
 import random
 import tf
 from math import sin, cos
-from nav_msgs.msg import OccupancyGrid
 
 RATE = 0.02
+
 
 def quat_to_euler(orientation):
     quat = (orientation.x, orientation.y, orientation.z, orientation.w)
     return tf.transformations.euler_from_quaternion(quat)  # roll, pitch, yaw
+
 
 def calc_rel_pose(pose, dist):
     # OJO, no se si estara bien
@@ -22,9 +23,6 @@ def main():
 
     turtle = MyTurtlebot()
     time.sleep(2)
-
-    print('Introduce wanted resolution:')
-    resol = input()
 
     while turtle.is_running():
         pose = turtle.get_estimated_pose()
@@ -40,14 +38,13 @@ def main():
             turtle.set_vel(az=yaw_rate)
             time.sleep(2)  # giro 5 seg
             turtle.stop()
-            resol_dists = turtle.get_sensor_dist_resol(resol)
-            print(list(resol_dists))
         else:  # AVANCE
             turtle.set_vel(vx=0.3)
 
         time.sleep(RATE)
 
     print("Test Finished")
+
 
 if __name__ == "__main__":
     main()
