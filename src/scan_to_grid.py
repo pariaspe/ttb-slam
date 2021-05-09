@@ -92,13 +92,17 @@ class MapGrid:
     def mark_as_free(self, x, y):
         if self.grid[x, y] == -1:  # unknown --> visited
             self.grid[x, y] = 0
-        elif 50 <= self.grid[x, y] < 90:  # not 100% sure --> subtract 30
-            self.grid[x, y] -= 30
+        elif 50 <= self.grid[x, y]:  # not 100% sure --> subtract 30
+            self.grid[x, y] -= 50
         elif 10 <= self.grid[x, y] < 50:
-            self.grid[x, y] -= 10
+            self.grid[x, y] = 0
 
     def mark_as_occupied(self, x, y):
-        self.grid[x][y] = 100  # mark occupied cell
+        # mark occupied cell
+        if 50 < self.grid[x,y] <= 100:
+            self.grid[x,y] = 100
+        elif 50 >= self.grid[x,y]:
+            self.grid[x,y] += 50
 
         # MARK NEIGHBOURS WITH 50% PROB // add 20% probability if not 100% probability
         self._mark_as_probable_obs(x+1, y)
