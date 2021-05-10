@@ -12,10 +12,11 @@ def binaryGrid(grid, grid_resol):
         for j in range(resol_y):
             
             copyMatrix = grid[i*grid_resol:i*grid_resol+grid_resol,j*grid_resol:j*grid_resol+grid_resol].copy()
-            np.where(copyMatrix == -1, 100, copyMatrix)
+            np.where(copyMatrix == -1, 100, copyMatrix) #it may be necessary to increase this value in case the laser info goes beyond walls
             #np.where(copyMatrix >= 50, 100, copyMatrix)
             #np.where(copyMatrix < 50, 0, copyMatrix)
             copyMatrix = copyMatrix/100
             binaryGrid[int(i)][int(j)] = int(round(np.mean(copyMatrix, dtype=np.float64),0))
-                
+
+    print(binaryGrid)       
     return(binaryGrid)

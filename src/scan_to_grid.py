@@ -9,7 +9,7 @@ from math import sin, cos, radians, pi, degrees
 import tf
 import numpy as np
 import time
-
+from binary_map import binaryGrid
 
 def quat_to_euler(orientation):
     quat = (orientation.x, orientation.y, orientation.z, orientation.w)
@@ -88,8 +88,12 @@ class MapGrid:
         self.height = height
 
         self.grid = np.ones((self.width, self.height), dtype=np.int) * -1
+        #self.binary = np.zeros((40,40), dtype=np.int)
 
     def mark_as_free(self, x, y):
+        #correction for wall error
+        x=x+1
+        y=y+1
         if self.grid[x, y] == -1:  # unknown --> visited
             self.grid[x, y] = 20
         elif 50 <= self.grid[x, y] < 100:  # not 100% sure --> subtract 30
@@ -100,6 +104,9 @@ class MapGrid:
             self.grid [x,y] = 0
 
     def mark_as_occupied(self, x, y):
+        #correction for wall error
+        x = x+1
+        y = y+1
         # mark occupied cell
         if 50 < self.grid[x,y] <= 90:
             self.grid[x,y] += 10
@@ -107,7 +114,7 @@ class MapGrid:
             self.grid[x,y] += 20
         elif self.grid[x,y] > 90:
             self.grid[x,y] = 100
-
+        #self.binary = binaryGrid(self.grid, 20)
         # MARK NEIGHBOURS WITH 50% PROB // add 20% probability if not 100% probability
         #self._mark_as_probable_obs(x+1, y)
         #self._mark_as_probable_obs(x, y+1)
@@ -156,7 +163,7 @@ class Laser2Grid:
         self.height = int(40 / self.RESOLUTION)
 
         self.grid_map = MapGrid(self.RESOLUTION, self.width, self.height)
-
+        
         self.laserSub = rospy.Subscriber("/scan", LaserScan, self.laser_cb)
         self.laserSub = rospy.Subscriber("/odom", Odometry, self.position_cb)
 
@@ -190,7 +197,7 @@ class Laser2Grid:
 
         for p in set(points):
             self.grid_map.mark_as_free(p[0], p[1])
-
+        
     def position_cb(self, data):
         """Updates robot status"""
         self.global_x = data.pose.pose.position.x
