@@ -42,12 +42,15 @@ def bug_initialization(turtle):
 def calculate_wall_angle(full_distances, wall_angle):
     # Calculate the angle to the wall
     wall_side = math.sqrt(full_distances[-wall_angle]**2 + full_distances[0]**2 - 2*full_distances[-wall_angle]*full_distances[0]*math.cos(math.radians(wall_angle)))
-    angle = round((360 - math.degrees(math.asin((full_distances[-wall_angle]*math.sin(math.radians(wall_angle)))/wall_side)*2))/2)
+    angle = round((360 - math.degrees(math.asin((full_distances[-wall_angle]*math.sin(math.radians(wall_angle)))/wall_side))*2)/2)
+    print(angle)
     return angle
-    #print(f'angle: {angle}, distance x+10: {full_distances[-wall_angle]}, sin 10: {math.sin(math.radians(wall_angle))}, wall side: {wall_side}')
 
 def rotate_against_wall(turtle, angle, direction):
     turtle.stop()
+    error = 4       # Little correction
+    angle = angle - error
+    print(f'Rotating {angle} degrees')
     pose = turtle.get_estimated_pose()
     initial_orientation = math.degrees(quat_to_euler(pose.orientation)[2])
     turtle_orientation = initial_orientation
@@ -55,7 +58,7 @@ def rotate_against_wall(turtle, angle, direction):
         turtle.set_vel(az=0.3 * direction)
         time.sleep(0.05)
         turtle_orientation = math.degrees(quat_to_euler(turtle.get_estimated_pose().orientation)[2])
-        #print(f'{turtle_orientation}, {initial_orientation}, {angle})')
+        
 
 
 def main():
@@ -66,10 +69,9 @@ def main():
 
     initial_position = turtle.get_estimated_pose().position
 
-    print(f'Initial position is: {initial_position}')
+    print(f'Initial position is: \n{initial_position}')
 
     timer = 0
-    previous_wall = 1
     position_error = 0.5
     wall_angle = 15
     bug_initialized = False
@@ -86,19 +88,30 @@ def main():
         time.sleep(0.05)
         wall_dist = full_distances[90]
 
-        if full_distances[0] < 1: # wall in front
+        # If the robot is not fully parallel to the wall
+        if full_distances[80] - full_distances[100] > 0.03:
+            print("Adjusting to the left...")
+            turtle.set_vel(az=0.2)
+            time.sleep(0.2)
+            turtle.set_vel(az=0)
+        elif full_distances[100] - full_distances[80] > 0.03:
+            print("Adjusting to the right...")
+            turtle.set_vel(az=-0.2)
+            time.sleep(0.2)
+            turtle.set_vel(az=0)
+
+        if full_distances[0] < 0.8: # If there is wall in front
+            print('Detected wall in front')
             turtle.stop()   # Stop turtle
             angle = calculate_wall_angle(full_distances, wall_angle)
-            print(f'{angle}')
             rotate_against_wall(turtle, angle, -1)      
         
-        #current_wall = full_distances[90]
-        #print(previous_wall - current_wall)
-        if full_distances[60] - full_distances[90] > 0.5: #previous_wall - current_wall > 0.3: # gap on side
+        if full_distances[75] - full_distances[90] > 0.5: # gap on left side
+            print("Detected a gap on the side")
             turtle.set_vel(vx=0.3)
             time.sleep(3)
             turtle.stop()
-            if full_distances[90] > 2:
+            if full_distances[90] > 2:      # If the turn is more than 90 degrees
                 turtle.set_vel(vx=0.3)      # Advance to avoid the wall after rotation
                 time.sleep(3)
                 rotate_against_wall(turtle, 90, 1)
@@ -106,10 +119,9 @@ def main():
                 time.sleep(3)
                 angle = calculate_wall_angle(full_distances, wall_angle + 90)
                 rotate_against_wall(turtle, angle, 1)
-            else:
+            else:                           # If the turn is less than 90 degrees
                 angle = calculate_wall_angle(full_distances, wall_angle + 90)
                 rotate_against_wall(turtle, angle, 1)
-        #previous_wall = current_wall
         
         if timer > 100:
             # Check whether the ttb arrived to the initial position
@@ -123,7 +135,7 @@ def main():
 
 
     print("Exploration Finished")
-    print(f'Final position is: {current_position}')
+    print(f'Final position is: \n{current_position}')
 
 if __name__ == "__main__":
     main()
