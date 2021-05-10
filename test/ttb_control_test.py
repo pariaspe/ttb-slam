@@ -1,5 +1,5 @@
 import time
-from ttb_slam.turtlebot_control import MyTurtlebot
+from ttb_slam import MyTurtlebot
 
 print("Test Started")
 

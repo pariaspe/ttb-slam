@@ -128,3 +128,6 @@ dmypy.json
 # Pyre type checker
 .pyre/
 src/scan_to_pc_copy.py
+
+# Editos
+.idea/*
