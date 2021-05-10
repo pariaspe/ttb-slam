@@ -35,7 +35,8 @@ def bug_initialization(turtle):
         
         turtle.set_vel(az=0.2)  # Rotate until parallel to the wall
         time.sleep(0.05)
-        #print(wall_idx)
+    
+    print('Wall detected at %d'.format(wall_idx))   #ROSINFO
     turtle.stop()
 
 def calculate_wall_angle(full_distances, wall_angle):
@@ -49,7 +50,7 @@ def rotate_against_wall(turtle, pose, angle, direction):
     turtle.stop()
     initial_orientation = pose.orientation.z
     turtle_orientation = initial_orientation
-    while math.degrees(abs(turtle_orientation - initial_orientation)) < angle:  # need to implement angle
+    while math.degrees(abs(turtle_orientation - initial_orientation)) < 15:  # need to implement angle
         turtle.set_vel(az=0.3 * direction)
         time.sleep(0.05)
         turtle_orientation = turtle.get_estimated_pose().orientation.z
@@ -87,22 +88,24 @@ def main():
             angle = calculate_wall_angle(full_distances, wall_angle)
             rotate_against_wall(turtle, pose, angle, -1)      
         
-        current_wall = full_distances[90]
-        if previous_wall - current_wall > 0.1: # gap on side
-            #time.sleep(2)
+        #current_wall = full_distances[90]
+        #print(previous_wall - current_wall)
+        if full_distances[60] - full_distances[90] > 0.5: #previous_wall - current_wall > 0.3: # gap on side
+            turtle.set_vel(vx=0.3)
+            time.sleep(3)
             turtle.stop()
-            if full_distances[90] == float('inf'):
-                turtle.set_vel(vx=0.3)
+            if full_distances[90] > 2:
+                turtle.set_vel(vx=0.3)      # Advance to avoid the wall after rotation
                 time.sleep(3)
                 rotate_against_wall(turtle, pose, 90, 1)
-                turtle.set_vel(vx=0.3)
+                turtle.set_vel(vx=0.3)      # Advance to see where the next wall is
                 time.sleep(3)
                 angle = calculate_wall_angle(full_distances, wall_angle + 90)
                 rotate_against_wall(turtle, pose, angle, 1)
             else:
                 angle = calculate_wall_angle(full_distances, wall_angle + 90)
                 rotate_against_wall(turtle, pose, angle, 1)
-        previous_wall = current_wall
+        #previous_wall = current_wall
         
         if timer > 100:
             # Check whether the ttb arrived to the initial position
