@@ -22,7 +22,7 @@ def detect_wall(ranges):
     return idx_min
 
 def bug_initialization(turtle):
-    res = 2  # Resolution of the advancing angle
+    res = 1  # Resolution of the advancing angle
     angle = 90      # Angle in which it is wanted to advance
     wall_idx = 0
     while wall_idx not in range(angle-res, angle + res + 1):
@@ -36,7 +36,7 @@ def bug_initialization(turtle):
         turtle.set_vel(az=0.2)  # Rotate until parallel to the wall
         time.sleep(0.05)
     
-    print('Wall detected at %d'.format(wall_idx))   #ROSINFO
+    print('Wall detected at {}'.format(wall_idx))   #ROSINFO
     turtle.stop()
 
 def calculate_wall_angle(full_distances, wall_angle):
@@ -46,15 +46,16 @@ def calculate_wall_angle(full_distances, wall_angle):
     return angle
     #print(f'angle: {angle}, distance x+10: {full_distances[-wall_angle]}, sin 10: {math.sin(math.radians(wall_angle))}, wall side: {wall_side}')
 
-def rotate_against_wall(turtle, pose, angle, direction):
+def rotate_against_wall(turtle, angle, direction):
     turtle.stop()
-    initial_orientation = pose.orientation.z
+    pose = turtle.get_estimated_pose()
+    initial_orientation = math.degrees(quat_to_euler(pose.orientation)[2])
     turtle_orientation = initial_orientation
-    while math.degrees(abs(turtle_orientation - initial_orientation)) < 15:  # need to implement angle
+    while abs(turtle_orientation - initial_orientation) < angle:  # need to implement angle
         turtle.set_vel(az=0.3 * direction)
         time.sleep(0.05)
-        turtle_orientation = turtle.get_estimated_pose().orientation.z
-        #print(f'{turtle_orientation}, {math.degrees(initial_orientation)})')
+        turtle_orientation = math.degrees(quat_to_euler(turtle.get_estimated_pose().orientation)[2])
+        #print(f'{turtle_orientation}, {initial_orientation}, {angle})')
 
 
 def main():
@@ -65,10 +66,12 @@ def main():
 
     initial_position = turtle.get_estimated_pose().position
 
+    print(f'Initial position is: {initial_position}')
+
     timer = 0
     previous_wall = 1
     position_error = 0.5
-    wall_angle = 10
+    wall_angle = 15
     bug_initialized = False
     while turtle.is_running():
         pose = turtle.get_estimated_pose()
@@ -83,10 +86,11 @@ def main():
         time.sleep(0.05)
         wall_dist = full_distances[90]
 
-        if full_distances[0] < 0.8: # wall in front
+        if full_distances[0] < 1: # wall in front
             turtle.stop()   # Stop turtle
             angle = calculate_wall_angle(full_distances, wall_angle)
-            rotate_against_wall(turtle, pose, angle, -1)      
+            print(f'{angle}')
+            rotate_against_wall(turtle, angle, -1)      
         
         #current_wall = full_distances[90]
         #print(previous_wall - current_wall)
@@ -97,20 +101,21 @@ def main():
             if full_distances[90] > 2:
                 turtle.set_vel(vx=0.3)      # Advance to avoid the wall after rotation
                 time.sleep(3)
-                rotate_against_wall(turtle, pose, 90, 1)
+                rotate_against_wall(turtle, 90, 1)
                 turtle.set_vel(vx=0.3)      # Advance to see where the next wall is
                 time.sleep(3)
                 angle = calculate_wall_angle(full_distances, wall_angle + 90)
-                rotate_against_wall(turtle, pose, angle, 1)
+                rotate_against_wall(turtle, angle, 1)
             else:
                 angle = calculate_wall_angle(full_distances, wall_angle + 90)
-                rotate_against_wall(turtle, pose, angle, 1)
+                rotate_against_wall(turtle, angle, 1)
         #previous_wall = current_wall
         
         if timer > 100:
             # Check whether the ttb arrived to the initial position
             current_position = turtle.get_estimated_pose().position
-            if current_position.x - initial_position.x < position_error and current_position.y - initial_position.y < position_error:
+            
+            if abs(current_position.y - initial_position.y) < position_error and abs(current_position.x - initial_position.x) < position_error:
                 turtle.stop()
                 break
             timer = 100
@@ -118,6 +123,7 @@ def main():
 
 
     print("Exploration Finished")
+    print(f'Final position is: {current_position}')
 
 if __name__ == "__main__":
     main()
