@@ -21,6 +21,12 @@ def detect_wall(ranges):
     idx_min = ranges.index(min_dist)
     return idx_min
 
+def remap_angle(angle):
+    if angle <= 0:
+        return -angle
+    elif angle > 0:
+        return 360 - angle
+
 def bug_initialization(turtle):
     res = 1  # Resolution of the advancing angle
     angle = 90      # Angle in which it is wanted to advance
@@ -53,11 +59,13 @@ def rotate_against_wall(turtle, angle, direction):
     print(f'Rotating {angle} degrees')
     pose = turtle.get_estimated_pose()
     initial_orientation = math.degrees(quat_to_euler(pose.orientation)[2])
+    remap_angle(initial_orientation)
     turtle_orientation = initial_orientation
     while abs(turtle_orientation - initial_orientation) < angle:  # need to implement angle
         turtle.set_vel(az=0.3 * direction)
         time.sleep(0.05)
         turtle_orientation = math.degrees(quat_to_euler(turtle.get_estimated_pose().orientation)[2])
+        remap_angle(turtle_orientation)
         
 
 
@@ -89,15 +97,17 @@ def main():
         wall_dist = full_distances[90]
 
         # If the robot is not fully parallel to the wall
-        if full_distances[80] - full_distances[100] > 0.03:
+        if full_distances[85] - full_distances[95] > 0.03:
             print("Adjusting to the left...")
+            turtle.stop()
             turtle.set_vel(az=0.2)
-            time.sleep(0.2)
+            time.sleep(0.5)
             turtle.set_vel(az=0)
-        elif full_distances[100] - full_distances[80] > 0.03:
+        elif full_distances[95] - full_distances[85] > 0.03:
             print("Adjusting to the right...")
+            turtle.stop()
             turtle.set_vel(az=-0.2)
-            time.sleep(0.2)
+            time.sleep(0.5)
             turtle.set_vel(az=0)
 
         if full_distances[0] < 0.8: # If there is wall in front
