@@ -43,7 +43,7 @@ def bug_initialization(turtle):
         turtle.set_vel(az=0.2)  # Rotate until parallel to the wall
         time.sleep(0.05)
     
-    print('Wall detected at {}'.format(wall_idx))   #ROSINFO
+    print('Wall detected at',format(wall_idx))   #ROSINFO
     turtle.stop()
 
 def calculate_wall_angle(full_distances, wall_angle):
@@ -57,7 +57,7 @@ def rotate_against_wall(turtle, angle, direction):
     turtle.stop()
     #error = 4       # Little correction
     angle = angle #- error
-    print(f'Rotating {angle} degrees')
+    print('Rotating', angle, 'degrees')
     pose = turtle.get_estimated_pose()
 
     initial_orientation = math.degrees(quat_to_euler(pose.orientation)[2])  # Save initial orientation
@@ -84,7 +84,7 @@ def main():
 
     initial_position = turtle.get_estimated_pose().position
 
-    print(f'Initial position is: \n{initial_position}')
+    print('Initial position is: \n',initial_position)
 
     timer = 0
     position_error = 0.5
@@ -142,7 +142,7 @@ def main():
 
 
     print("Exploration Finished")
-    print(f'Final position is: \n{current_position}')
+    print('Final position is: \n',current_position)
 
 if __name__ == "__main__":
     main()
