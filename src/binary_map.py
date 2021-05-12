@@ -1,26 +1,35 @@
 import rospy
 import numpy as np
 import cv2
+from nav_msgs.srv import OccupancyGrid
 
 # define grid_resol as 1m so we can match the initial maps
 
 
-def binaryGrid(grid, grid_resol):
-    len_x, len_y = np.shape(grid)
-    resol_x, resol_y = int(len_x/grid_resol), int(len_y/grid_resol)
-    binaryGrid = np.zeros((resol_x,resol_y))
-    for i in range(resol_x):
-        for j in range(resol_y):
-            
-            copyMatrix = grid[i*grid_resol:i*grid_resol+grid_resol,j*grid_resol:j*grid_resol+grid_resol].copy()
-            np.where(copyMatrix == -1, 100, copyMatrix) # it may be necessary to increase this value in case the laser info goes beyond walls
-            # np.where(copyMatrix >= 50, 100, copyMatrix)
-            # np.where(copyMatrix < 50, 0, copyMatrix)
-            copyMatrix = copyMatrix/100
-            binaryGrid[int(i)][int(j)] = int(round(np.mean(copyMatrix, dtype=np.float64),0))
+class MyBinaryMap:
+    def __init__(self): #service to request binary map creation
+        rospy.init_node("binary_service_node")
+        rospy.loginfo("service node for binary map creation initialized")
+        binary = rospy.Service("/binary_map", OccupancyGrid, self.binaryGrid)
 
-    print(binaryGrid)       
-    return(binaryGrid)
+
+    def binaryGrid(grid):
+        grid_resol = 1
+        len_x, len_y = np.shape(grid)
+        resol_x, resol_y = int(len_x/grid_resol), int(len_y/grid_resol)
+        binaryGrid = np.zeros((resol_x,resol_y))
+        for i in range(resol_x):
+            for j in range(resol_y):
+                
+                copyMatrix = grid[i*grid_resol:i*grid_resol+grid_resol,j*grid_resol:j*grid_resol+grid_resol].copy()
+                np.where(copyMatrix == -1, 100, copyMatrix) # it may be necessary to increase this value in case the laser info goes beyond walls
+                # np.where(copyMatrix >= 50, 100, copyMatrix)
+                # np.where(copyMatrix < 50, 0, copyMatrix)
+                copyMatrix = copyMatrix/100
+                binaryGrid[int(i)][int(j)] = int(round(np.mean(copyMatrix, dtype=np.float64),0))
+
+        print(binaryGrid)       
+        return(binaryGrid)
 
 
 def occupancy_to_binary(grid):
