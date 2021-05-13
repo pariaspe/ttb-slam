@@ -131,3 +131,5 @@ src/scan_to_pc_copy.py
 
 # Editos
 .idea/*
+src/Generated/binary_map.csv
+src/Generated/binary_map.png
