@@ -25,7 +25,6 @@ class MyBinaryMap:
         binary_grid[binary_grid >= 0.5] = 1
         binary_grid[binary_grid < 0] = 1
         binary_grid[binary_grid < 0.5] = 0
-        print(binary_grid)
         return binary_grid
 
 

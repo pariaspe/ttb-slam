@@ -87,6 +87,8 @@ class MapGrid:
     def __init__(self, resolution, width, height):
         self.frame = "map"
         self.resolution = resolution
+        #for binary resolutions < 0.5 ttb must stop before generating map or range error will distort map
+        self.binary_resol = 0.2
         self.width = width
         self.height = height
         self.plotgrid = True
@@ -122,11 +124,8 @@ class MapGrid:
         t1 = time.time()
         total = int(t1 - self.t0)
         if total % 50 == 0: self.plotgrid = True
-        if total > 10 and self.plotgrid:
-            # self.binary_map = MyBinaryMap(self.grid, 1/self.resolution).occupancy_to_binary()
-            # self.binary_map = MyBinaryMap(self.grid, 1/self.resolution).reduce_resolution(self.binary_map)
-            # MyBinaryMap(self.grid, 1/self.resolution).plotter(self.binary_map)
-            self.binary_map = MyBinaryMap(self.grid, 1/self.resolution).run()
+        if total > 20 and self.plotgrid:
+            self.binary_map = MyBinaryMap(self.grid, self.binary_resol/self.resolution).run()
             self.plotgrid = False
       
     def _mark_as_probable_obs(self, x, y):
