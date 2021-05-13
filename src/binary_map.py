@@ -1,35 +1,41 @@
 import rospy
 import numpy as np
+import matplotlib.pyplot as plt
 import cv2
-from nav_msgs.srv import OccupancyGrid
+#from nav_msgs.srv import OccupancyGrid
 
 # define grid_resol as 1m so we can match the initial maps
 
 
 class MyBinaryMap:
-    def __init__(self): #service to request binary map creation
-        rospy.init_node("binary_service_node")
-        rospy.loginfo("service node for binary map creation initialized")
-        binary = rospy.Service("/binary_map", OccupancyGrid, self.binaryGrid)
+    def __init__(self, grid, grid_resol): #service to request binary map creation
+        self.grid = grid
+        self.grid_resol = int(grid_resol)
+        # rospy.init_node("binary_service_node")
+        # rospy.loginfo("service node for binary map creation initialized")
+        # binary = rospy.Service("/binary_map", OccupancyGrid, self.binaryGrid)
 
 
-    def binaryGrid(grid):
-        grid_resol = 1
-        len_x, len_y = np.shape(grid)
-        resol_x, resol_y = int(len_x/grid_resol), int(len_y/grid_resol)
-        binaryGrid = np.zeros((resol_x,resol_y))
+    def binaryGrid(self):
+        
+        dim = np.shape(self.grid)
+        print('shape of the grid is: ',)
+        resol_x, resol_y = int(dim[0]/self.grid_resol), int(dim[1]/self.grid_resol)
+        print('resolution X is', resol_x, 'and resolution Y is', resol_y)
+        binary_grid = np.zeros((resol_x,resol_y))
         for i in range(resol_x):
             for j in range(resol_y):
                 
-                copyMatrix = grid[i*grid_resol:i*grid_resol+grid_resol,j*grid_resol:j*grid_resol+grid_resol].copy()
+                copyMatrix = self.grid[i*self.grid_resol:i*self.grid_resol+self.grid_resol,j*self.grid_resol:j*self.grid_resol+self.grid_resol].copy()
                 np.where(copyMatrix == -1, 100, copyMatrix) # it may be necessary to increase this value in case the laser info goes beyond walls
                 # np.where(copyMatrix >= 50, 100, copyMatrix)
                 # np.where(copyMatrix < 50, 0, copyMatrix)
                 copyMatrix = copyMatrix/100
-                binaryGrid[int(i)][int(j)] = int(round(np.mean(copyMatrix, dtype=np.float64),0))
+                binary_grid[int(i)][int(j)] = int(round(np.mean(copyMatrix, dtype=np.float64),0))
 
-        print(binaryGrid)       
-        return(binaryGrid)
+        plt.imshow(binary_grid, cmap='Greys',  interpolation='nearest')
+        plt.savefig('binary_map.png')       
+        return(binary_grid)
 
 
 def occupancy_to_binary(grid):
@@ -67,20 +73,24 @@ def grid_to_img(grid):
 
 
 # for script testing
-if __name__ == "__main__":
-    grid = np.random.rand(500, 500)
-    print(grid.shape)
-    print(grid)
+# if __name__ == "__main__":
+    
+    # resolution = 1
+    # b = MyBinaryMap
 
-    small = reduce_resolution(grid, (100, 100))
-    print(small.shape)
-    print(small)
+#     grid = np.random.rand(500, 500)
+#     print(grid.shape)
+#     print(grid)
 
-    binarized_grid = occupancy_to_binary(small)
-    print(binarized_grid.shape)
-    print(binarized_grid)
+#     small = reduce_resolution(grid, (100, 100))
+#     print(small.shape)
+#     print(small)
 
-    cv2.imshow("Map", grid_to_img(grid))
-    cv2.imshow("Map Grey", grid_to_img(small))
-    cv2.imshow("Map BW", grid_to_img(binarized_grid))
-    cv2.waitKey(0)
+#     binarized_grid = occupancy_to_binary(small)
+#     print(binarized_grid.shape)
+#     print(binarized_grid)
+
+#     cv2.imshow("Map", grid_to_img(grid))
+#     cv2.imshow("Map Grey", grid_to_img(small))
+#     cv2.imshow("Map BW", grid_to_img(binarized_grid))
+#     cv2.waitKey(0)

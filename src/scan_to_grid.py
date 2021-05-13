@@ -9,7 +9,8 @@ from math import sin, cos, radians, pi, degrees
 import tf
 import numpy as np
 import time
-from binary_map import binaryGrid
+import sys
+from binary_map import MyBinaryMap
 
 def quat_to_euler(orientation):
     quat = (orientation.x, orientation.y, orientation.z, orientation.w)
@@ -81,12 +82,13 @@ def BresenhamAlgorithm(start, end):
 
 
 class MapGrid:
+    t0 = time.time()
     def __init__(self, resolution, width, height):
         self.frame = "map"
         self.resolution = resolution
         self.width = width
         self.height = height
-
+        self.plotgrid = True
         self.grid = np.ones((self.width, self.height), dtype=np.int) * -1
         #self.binary = np.zeros((40,40), dtype=np.int)
 
@@ -114,13 +116,18 @@ class MapGrid:
             self.grid[x,y] += 20
         elif self.grid[x,y] > 90:
             self.grid[x,y] = 100
-        #self.binary = binaryGrid(self.grid, 20)
-        # MARK NEIGHBOURS WITH 50% PROB // add 20% probability if not 100% probability
-        #self._mark_as_probable_obs(x+1, y)
-        #self._mark_as_probable_obs(x, y+1)
-        #self._mark_as_probable_obs(x-1, y)
-        #self._mark_as_probable_obs(x, y-1)
 
+        t1 = time.time()
+        total = int(t1 - self.t0)
+        if total%100 == 0: self.plotgrid = True 
+        if total > 50 and self.plotgrid:  
+            # sys.stdout = open("printer.txt","w")
+            #print(msg.data)
+            self.binary_map = MyBinaryMap(self.grid, 1/self.resolution).binaryGrid()
+            print(self.binary_map)
+            self.plotgrid = False
+            # sys.stdout.close()
+      
     def _mark_as_probable_obs(self, x, y):
         if self.grid[int(x), int(y)] < 1:
             self.grid[int(x), int(y)] = 50
@@ -143,13 +150,13 @@ class MapGrid:
         msg.info.origin.orientation.z = grid_orientation[2]
         msg.info.origin.orientation.w = grid_orientation[3]
         msg.data = self.grid.ravel().tolist()
+
         return msg
 
 
 class Laser2Grid:
     RESOLUTION = 0.05
     GRID_RATE = 100000000  # 0.1 secs
-
     def __init__(self, headless=False):
         if not headless:
             rospy.init_node("Laser2Grid")
@@ -159,8 +166,8 @@ class Laser2Grid:
         self.global_y = 0
         self.global_yaw = 0
         self.global_ang_z = 0
-        self.width = int(40 / self.RESOLUTION)
-        self.height = int(40 / self.RESOLUTION)
+        self.width = int(30 / self.RESOLUTION)
+        self.height = int(30 / self.RESOLUTION)
 
         self.grid_map = MapGrid(self.RESOLUTION, self.width, self.height)
         

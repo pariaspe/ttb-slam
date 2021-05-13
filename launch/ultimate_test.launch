@@ -23,6 +23,4 @@
   <node pkg="gazebo_ros" type="spawn_model" name="spawn_urdf" args="-urdf -model turtlebot3_$(arg model) -x $(arg x_pos) -y $(arg y_pos) -z $(arg z_pos) -param robot_description" />
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find ttb_slam)/config_files/ttb3_gazebo_model.rviz -f 'world'"/>
   <node name="set_world" pkg="ttb_slam" type="set_tf.py"/>
-  <node name="grid_map" pkg="ttb_slam" type="scan_to_grid.py"/>
-  <node name="BugNav" pkg="ttb_slam" type="bug_nav.py"/>
 </launch>
