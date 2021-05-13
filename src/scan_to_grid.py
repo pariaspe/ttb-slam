@@ -123,11 +123,10 @@ class MapGrid:
         total = int(t1 - self.t0)
         if total % 50 == 0: self.plotgrid = True
         if total > 10 and self.plotgrid:
-            self.binary_map = MyBinaryMap(self.grid, 1/self.resolution).occupancy_to_binary()
-            self.binary_map = MyBinaryMap(self.grid, 1/self.resolution).reduce_resolution(self.binary_map)
-            plt.imshow(self.binary_map, cmap='Greys',  interpolation='nearest')
-            plt.savefig('Generated/binary_map.png')
-            np.savetxt("Generated/binary_map.csv", self.binary_map, delimiter=",")
+            # self.binary_map = MyBinaryMap(self.grid, 1/self.resolution).occupancy_to_binary()
+            # self.binary_map = MyBinaryMap(self.grid, 1/self.resolution).reduce_resolution(self.binary_map)
+            # MyBinaryMap(self.grid, 1/self.resolution).plotter(self.binary_map)
+            self.binary_map = MyBinaryMap(self.grid, 1/self.resolution).run()
             self.plotgrid = False
       
     def _mark_as_probable_obs(self, x, y):
