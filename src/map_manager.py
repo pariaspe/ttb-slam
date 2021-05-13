@@ -23,9 +23,10 @@ class MapManager:
         return True
 
     def get_binary_map(self, req):
+        # TODO
         pass
 
 
 if __name__ == "__main__":
-    l2pc = MapManager()
+    map_manager = MapManager()
     rospy.spin()
