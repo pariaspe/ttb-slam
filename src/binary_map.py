@@ -2,19 +2,18 @@ import rospy
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
-#from nav_msgs.srv import OccupancyGrid
+# from nav_msgs.srv import OccupancyGrid
 
 # define grid_resol as 1m so we can match the initial maps
 
 
 class MyBinaryMap:
-    def __init__(self, grid, grid_resol): #service to request binary map creation
+    def __init__(self, grid, grid_resol):  # service to request binary map creation
         self.grid = grid
         self.grid_resol = int(grid_resol)
         # rospy.init_node("binary_service_node")
         # rospy.loginfo("service node for binary map creation initialized")
         # binary = rospy.Service("/binary_map", OccupancyGrid, self.binaryGrid)
-
 
     def binaryGrid(self):
         
