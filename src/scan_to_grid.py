@@ -10,7 +10,7 @@ import tf
 import numpy as np
 import time
 from binary_map import MyBinaryMap
-
+import matplotlib.pyplot as plt
 
 def quat_to_euler(orientation):
     quat = (orientation.x, orientation.y, orientation.z, orientation.w)
@@ -121,9 +121,13 @@ class MapGrid:
         # TEMPORAL #
         t1 = time.time()
         total = int(t1 - self.t0)
-        if total % 100 == 0: self.plotgrid = True
-        if total > 50 and self.plotgrid:
-            self.binary_map = MyBinaryMap(self.grid, 1/self.resolution).binaryGrid()
+        if total % 50 == 0: self.plotgrid = True
+        if total > 10 and self.plotgrid:
+            self.binary_map = MyBinaryMap(self.grid, 1/self.resolution).occupancy_to_binary()
+            self.binary_map = MyBinaryMap(self.grid, 1/self.resolution).reduce_resolution(self.binary_map)
+            plt.imshow(self.binary_map, cmap='Greys',  interpolation='nearest')
+            plt.savefig('Generated/binary_map.png')
+            np.savetxt("Generated/binary_map.csv", self.binary_map, delimiter=",")
             self.plotgrid = False
       
     def _mark_as_probable_obs(self, x, y):

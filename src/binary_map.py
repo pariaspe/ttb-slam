@@ -38,38 +38,42 @@ class MyBinaryMap:
         return(binary_grid)
 
 
-def occupancy_to_binary(grid):
-    """
+    def occupancy_to_binary(self):
+        """
 
-    :param grid: occupancy grid with values between 0 and 1, where 0 represent free and 1 obstacle. -1 --> unknown
-    :return:
-    """
-    binary_grid = np.copy(grid)
-    binary_grid[binary_grid > 0.5] = 1
-    binary_grid[binary_grid < 0.5] = 0
-    return binary_grid
-
-
-def reduce_resolution(grid, new_shape):
-    """
-
-    :param grid: occupancy grid
-    :param new_shape:
-    :return:
-    """
-    new_grid = np.copy(grid)
-    sh = new_shape[0], grid.shape[0]//new_shape[0], new_shape[1], grid.shape[1]//new_shape[1]
-    return new_grid.reshape(sh).mean(-1).mean(1)
+        :param grid: occupancy grid with values between 0 and 1, where 0 represent free and 1 obstacle. -1 --> unknown
+        :return:
+        """
+        binary_grid = np.copy(self.grid)
+        binary_grid = binary_grid/100
+        binary_grid[binary_grid >= 0.5] = 1
+        binary_grid[binary_grid < 0] = 1
+        binary_grid[binary_grid < 0.5] = 0
+        print(binary_grid)
+        return binary_grid
 
 
-def grid_to_img(grid):
-    """
+    def reduce_resolution(self, binary_full_grid):
+        """
+        
+        :param grid: occupancy grid
+        :param new_shape:
+        :return:
+        """
+        new_shape = int(self.grid.shape[0]/self.grid_resol), int(self.grid.shape[1]/self.grid_resol)
+        new_grid = np.copy(binary_full_grid)
+        sh = new_shape[0], self.grid.shape[0]//new_shape[0], new_shape[1], self.grid.shape[1]//new_shape[1]
+        return np.rint(new_grid.reshape(sh).mean(-1).mean(1))
 
-    :param grid:
-    :return:
-    """
-    img = np.array(grid * 255, dtype=np.uint8)
-    return cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 3, 0)
+
+    def grid_to_img(grid):
+        """
+
+        :param grid:
+        :return:
+        """
+        img = np.array(grid * 255, dtype=np.uint8)
+        return cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 3, 0)
 
 
 # for script testing
