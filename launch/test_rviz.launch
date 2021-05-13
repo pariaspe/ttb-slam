@@ -13,7 +13,7 @@
     <arg name="world_name" value="$(find ttb_slam)/assets/map1.world"/>
     <arg name="paused" value="false"/>
     <arg name="use_sim_time" value="true"/>
-    <arg name="gui" value="true"/>
+    <arg name="gui" value="false"/>
     <arg name="headless" value="false"/>
     <arg name="debug" value="false"/>
   </include>
@@ -24,4 +24,5 @@
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find ttb_slam)/config_files/ttb3_gazebo_model.rviz -f 'world'"/>
   <node name="set_world" pkg="ttb_slam" type="set_tf.py"/>
   <node name="grid_map" pkg="ttb_slam" type="scan_to_grid.py"/>
+  <node name="map_manager" pkg="ttb_slam" type="map_manager.py"/>
 </launch>
