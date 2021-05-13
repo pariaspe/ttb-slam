@@ -9,8 +9,8 @@ from math import sin, cos, radians, pi, degrees
 import tf
 import numpy as np
 import time
-import sys
 from binary_map import MyBinaryMap
+
 
 def quat_to_euler(orientation):
     quat = (orientation.x, orientation.y, orientation.z, orientation.w)
@@ -83,6 +83,7 @@ def BresenhamAlgorithm(start, end):
 
 class MapGrid:
     t0 = time.time()
+
     def __init__(self, resolution, width, height):
         self.frame = "map"
         self.resolution = resolution
@@ -90,37 +91,38 @@ class MapGrid:
         self.height = height
         self.plotgrid = True
         self.grid = np.ones((self.width, self.height), dtype=np.int) * -1
-        #self.binary = np.zeros((40,40), dtype=np.int)
+        # self.binary = np.zeros((40,40), dtype=np.int)
 
     def mark_as_free(self, x, y):
-        #correction for wall error
-        x=x+1
-        y=y+1
+        # correction for wall error
+        x = x+1
+        y = y+1
         if self.grid[x, y] == -1:  # unknown --> visited
             self.grid[x, y] = 20
         elif 50 <= self.grid[x, y] < 100:  # not 100% sure --> subtract 30
             self.grid[x, y] -= 20
         elif 10 <= self.grid[x, y] < 50:
             self.grid[x, y] -= 10
-        elif self.grid[x,y] < 10:
-            self.grid [x,y] = 0
+        elif self.grid[x, y] < 10:
+            self.grid[x, y] = 0
 
     def mark_as_occupied(self, x, y):
-        #correction for wall error
+        # correction for wall error
         x = x+1
         y = y+1
         # mark occupied cell
-        if 50 < self.grid[x,y] <= 90:
-            self.grid[x,y] += 10
-        elif 50 >= self.grid[x,y]:
-            self.grid[x,y] += 20
-        elif self.grid[x,y] > 90:
-            self.grid[x,y] = 100
+        if 50 < self.grid[x, y] <= 90:
+            self.grid[x, y] += 10
+        elif 50 >= self.grid[x, y]:
+            self.grid[x, y] += 20
+        elif self.grid[x, y] > 90:
+            self.grid[x, y] = 100
 
+        # TEMPORAL #
         t1 = time.time()
         total = int(t1 - self.t0)
-        if total%100 == 0: self.plotgrid = True 
-        if total > 50 and self.plotgrid:  
+        if total % 100 == 0: self.plotgrid = True
+        if total > 50 and self.plotgrid:
             self.binary_map = MyBinaryMap(self.grid, 1/self.resolution).binaryGrid()
             self.plotgrid = False
       
@@ -153,6 +155,7 @@ class MapGrid:
 class Laser2Grid:
     RESOLUTION = 0.05
     GRID_RATE = 100000000  # 0.1 secs
+
     def __init__(self, headless=False):
         if not headless:
             rospy.init_node("Laser2Grid")

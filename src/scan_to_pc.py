@@ -2,18 +2,14 @@ import rospy
 import sensor_msgs.point_cloud2 as pc2
 from sensor_msgs.msg import PointCloud2, LaserScan
 from nav_msgs.msg import Odometry
-#from gazebo_msgs.msg import ModelStates
 from laser_geometry import LaserProjection
 from nav_msgs.msg import OccupancyGrid
 from geometry_msgs.msg import Pose
 
-#from ttb_slam.turtlebot_control import MyTurtlebot
-
-from math import sin, cos, tan, radians, ceil, pi, degrees
+from math import sin, cos, radians, pi, degrees
 import tf
 import numpy as np
 import time
-import os
 
 
 def quat_to_euler(orientation):
@@ -31,7 +27,7 @@ def polar_to_geom(ang, dist):
     return [cos(radians(ang))*dist, sin(radians(ang))*dist]
 
 
-# Bresenham Algorithm allows alliasing with integers only, useful to find cells in a line
+# Bresenham Algorithm allows aliasing with integers only, useful to find cells in a line
 def BresenhamAlgorithm(start, end):
     x1, y1 = start
     x2, y2 = end
@@ -70,7 +66,7 @@ def BresenhamAlgorithm(start, end):
 
     y = y1
     points = []
-    #for x in range(x1, x2 + 1):
+    # for x in range(x1, x2 + 1):
     for x in range(x1, x2):
         coord = (y, x) if steep else (x, y)
         points.append(coord)
@@ -84,7 +80,8 @@ def BresenhamAlgorithm(start, end):
     
     return points
 
-class Laser2PC():
+
+class Laser2PC:
 
     def __init__(self):
         self.global_x = 0
@@ -97,8 +94,8 @@ class Laser2PC():
         self.robot_in_grid = [0, 0]
 
         self.full_scan = []
-        self.full_scan.append((0,0,0,0,0))
-        self.scanned_map = np.zeros((self.width, self.height)) #initialize map to zero, then we fill it. Each cell represent a RESOLUTION squared area
+        self.full_scan.append((0, 0, 0, 0, 0))
+        self.scanned_map = np.zeros((self.width, self.height))  # initialize map to zero. Each cell represent a RESOLUTION squared area
         self.occupancy_grid = np.ones((self.width, self.height), dtype=np.int)*-1
 
         self.laserProj = LaserProjection()
@@ -113,7 +110,6 @@ class Laser2PC():
         return [int(round(x/self.RESOLUTION, 0) - 1),
                 int(round(y/self.RESOLUTION, 0) - 1)]
 
-    
     def free_2_grid(self, laser_ranges, max_rng):
         robot_pos = self.position_2_grid(self.global_x, self.global_y)
 
@@ -121,18 +117,17 @@ class Laser2PC():
         for i, rng in enumerate(laser_ranges):
             if rng == float('inf'):
                 rng = max_rng
-            end_pos = map(lambda x,y: int(x+y), robot_pos, polar_to_geom(i + degrees(self.global_yaw), rng/self.RESOLUTION))  # translation to robot_pos
+            end_pos = map(lambda x, y: int(x+y), robot_pos,
+                          polar_to_geom(i + degrees(self.global_yaw), rng/self.RESOLUTION))  # translation to robot_pos
             points += BresenhamAlgorithm(robot_pos, end_pos)
 
         for p in set(points):
             if self.occupancy_grid[p[0], p[1]] == -1:  # unknown --> visited
                 self.occupancy_grid[p[0], p[1]] = 0
-            elif self.occupancy_grid[p[0], p[1]] < 90 and self.occupancy_grid[p[0], p[1]] >= 50:  # not 100% sure --> substract 50
+            elif 50 <= self.occupancy_grid[p[0], p[1]] < 90:  # not 100% sure --> substract 50
                 self.occupancy_grid[p[0], p[1]] -= 30
-            if self.occupancy_grid[p[0], p[1]] < 50 and self.occupancy_grid[p[0], p[1]] >= 10:  # unknown --> visited
+            if 10 <= self.occupancy_grid[p[0], p[1]] < 50:  # unknown --> visited
                 self.occupancy_grid[p[0], p[1]] -= 10
-                # TODO: da error al tener valores negativos (menores a cero)
-
 
     def laserCallback(self, data):
         cloud_out = self.laserProj.projectLaser(data)   # Check transformLaserScanToPointCloud()
@@ -157,66 +152,44 @@ class Laser2PC():
                 if abs(dist_x) < self.RESOLUTION and abs(dist_y) < self.RESOLUTION:
                     rep_point = True
 
-            if not rep_point and abs(self.global_ang_z) == 0.0: #avoid mapping while turning to avoid additional rotational error
+            if not rep_point and abs(self.global_ang_z) == 0.0:  # avoid mapping while turning to avoid rotational error
                 self.full_scan.append(global_point)
                 position = self.position_2_grid(global_point[0], global_point[1])
 
-                self.scanned_map[position[0]][position[1]] = 1 #mark occupied cell
-                self.occupancy_grid[position[0]][position[1]] = 100 #mark occupied cell
-                #MARK NEIGHBOURS WITH 50% PROB // add 20% probability if not 100% probability
-                if  self.occupancy_grid[int(position[0]+1), int(position[1])]   < int(1):
-                    self.occupancy_grid[int(position[0]+1), int(position[1])]   = int(50)
-                elif self.occupancy_grid[int(position[0]+1), int(position[1])]   < int(90):
-                    self.occupancy_grid[int(position[0]+1), int(position[1])]   += int(20)
+                self.scanned_map[position[0]][position[1]] = 1  # mark occupied cell
+                self.occupancy_grid[position[0]][position[1]] = 100  # mark occupied cell
+                # MARK NEIGHBOURS WITH 50% PROB // add 20% probability if not 100% probability
+                if self.occupancy_grid[int(position[0]+1), int(position[1])] < int(1):
+                    self.occupancy_grid[int(position[0]+1), int(position[1])] = int(50)
+                elif self.occupancy_grid[int(position[0]+1), int(position[1])] < int(90):
+                    self.occupancy_grid[int(position[0]+1), int(position[1])] += int(20)
 
-                if  self.occupancy_grid[int(position[0]), int(position[1]+1)] < int(1):
+                if self.occupancy_grid[int(position[0]), int(position[1]+1)] < int(1):
                     self.occupancy_grid[int(position[0]), int(position[1]+1)] = int(50)
-                elif self.occupancy_grid[int(position[0]), int(position[1]+1)]   < int(90):
-                    self.occupancy_grid[int(position[0]), int(position[1]+1)]   += int(20)
+                elif self.occupancy_grid[int(position[0]), int(position[1]+1)] < int(90):
+                    self.occupancy_grid[int(position[0]), int(position[1]+1)] += int(20)
 
-                if  self.occupancy_grid[int(position[0]-1), int(position[1])]   < int(1):
-                    self.occupancy_grid[int(position[0]-1), int(position[1])]   = int(50)
-                elif self.occupancy_grid[int(position[0]-1), int(position[1])]   < int(90):
-                    self.occupancy_grid[int(position[0]-1), int(position[1])]   += int(20)
+                if self.occupancy_grid[int(position[0]-1), int(position[1])] < int(1):
+                    self.occupancy_grid[int(position[0]-1), int(position[1])] = int(50)
+                elif self.occupancy_grid[int(position[0]-1), int(position[1])] < int(90):
+                    self.occupancy_grid[int(position[0]-1), int(position[1])] += int(20)
 
-                if  self.occupancy_grid[int(position[0]), int(position[1]-1)] < int(1):
+                if self.occupancy_grid[int(position[0]), int(position[1]-1)] < int(1):
                     self.occupancy_grid[int(position[0]), int(position[1]-1)] = int(50)
-                elif self.occupancy_grid[int(position[0]), int(position[1]-1)]   < int(90):
-                    self.occupancy_grid[int(position[0]), int(position[1]-1)]   += int(20)
-
-
+                elif self.occupancy_grid[int(position[0]), int(position[1]-1)] < int(90):
+                    self.occupancy_grid[int(position[0]), int(position[1]-1)] += int(20)
 
         # Create the point cloud from the list
         global_cloud_out = pc2.create_cloud(cloud_out.header, cloud_out.fields, self.full_scan)
         global_cloud_out.header.frame_id = "map"  # sets the reference of the point cloud to the world
 
-
         self.pcPub.publish(global_cloud_out)    # publish the pc
-
 
     def positionCallback(self, data):
         self.global_x = data.pose.pose.position.x
         self.global_y = data.pose.pose.position.y
         _, _, self.global_yaw = quat_to_euler(data.pose.pose.orientation)
-        self.global_ang_z = round(data.twist.twist.angular.z,2)
-
-
-    def resizeMap(self, scan_data):
-        #find max and min value in x and y // Seguramente se pueda hacer todo esto en un par de lineas
-        X_max = numpy.amax(scan_data[0])
-        X_min = numpy.amin(scan_data[0])
-        Y_max = numpy.amax(scan_data[1])
-        Y_min = numpy.amin(scan_data[1])
-        X_length = math.ceil((X_max - X_min)/self.RESOLUTION)
-        Y_length = math.ceil((Y_max - Y_min)/self.RESOLUTION)
-        if  X_length - 1 > len(self.scanned_map[0]) or Y_length - 1 > len(self.scanned_map[1]): #if map size is not big enough append rows until it fits
-            newrows = X_length - 1 - len(self.scanned_map[0])
-            newcols = Y_length - 1 - len(self.scanned_map[1])
-            if newrows > 0: #now we need to know at what side we stack the new rows
-                self.scanned_map = np.stack((self.scanned_map,np.zeros((newrows,len(self.scanned_map[1])))), axis=0) #to stack on the other side, change stack positions
-                #need to find a way to stack in the correct side
-            if newcols > 0:
-                self.scanned_map = np.stack((self.scanned_map,np.zeros((len(self.scanned_map[0]),newcols))), axis=-1)
+        self.global_ang_z = round(data.twist.twist.angular.z, 2)
 
     def send_occupancy_grid(self):
         msg = OccupancyGrid()
@@ -238,11 +211,9 @@ class Laser2PC():
         msg.data = self.occupancy_grid.ravel().tolist()
         self.occup_grid_pub.publish(msg)
 
-
     def print_scanned_map(self):
         for row in self.scanned_map:
-            print("".join(map(lambda x: " " if not x else "O",row)))
-
+            print("".join(map(lambda x: " " if not x else "O", row)))
 
 
 if __name__ == '__main__':

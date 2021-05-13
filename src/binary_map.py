@@ -3,26 +3,23 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 
-#from nav_msgs.srv import OccupancyGrid
-
 # define grid_resol as 1m so we can match the initial maps
 
 
 class MyBinaryMap:
-    def __init__(self, grid, grid_resol): #service to request binary map creation
+    def __init__(self, grid, grid_resol):  # service to request binary map creation
         self.grid = grid
         self.grid_resol = int(grid_resol)
         # rospy.init_node("binary_service_node")
         # rospy.loginfo("service node for binary map creation initialized")
         # binary = rospy.Service("/binary_map", OccupancyGrid, self.binaryGrid)
 
-
     def binaryGrid(self):
         
         dim = np.shape(self.grid)
-        #print('shape of the grid is: ',)
+        # print('shape of the grid is: ',)
         resol_x, resol_y = int(dim[0]/self.grid_resol), int(dim[1]/self.grid_resol)
-        #print('resolution X is', resol_x, 'and resolution Y is', resol_y)
+        # print('resolution X is', resol_x, 'and resolution Y is', resol_y)
         binary_grid = np.zeros((resol_x,resol_y))
         for i in range(resol_x):
             for j in range(resol_y):
@@ -33,11 +30,11 @@ class MyBinaryMap:
                 # np.where(copyMatrix < 50, 0, copyMatrix)
                 copyMatrix = copyMatrix/100
                 binary_grid[int(i)][int(j)] = int(round(np.mean(copyMatrix, dtype=np.float64),0))
-        #Generate image of the grid
+        # Generate image of the grid
         plt.imshow(binary_grid, cmap='Greys',  interpolation='nearest')
         plt.savefig('Generated/binary_map.png')
-        #Generate CSV file with map
-        np.savetxt("Generated/binary_map.csv", binary_grid, delimiter=",")       
+        # Generate CSV file with map
+        np.savetxt("Generated/binary_map.csv", binary_grid, delimiter=",")
         return(binary_grid)
 
 
