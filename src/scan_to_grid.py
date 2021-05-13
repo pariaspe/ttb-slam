@@ -121,12 +121,8 @@ class MapGrid:
         total = int(t1 - self.t0)
         if total%100 == 0: self.plotgrid = True 
         if total > 50 and self.plotgrid:  
-            # sys.stdout = open("printer.txt","w")
-            #print(msg.data)
             self.binary_map = MyBinaryMap(self.grid, 1/self.resolution).binaryGrid()
-            print(self.binary_map)
             self.plotgrid = False
-            # sys.stdout.close()
       
     def _mark_as_probable_obs(self, x, y):
         if self.grid[int(x), int(y)] < 1:
@@ -166,8 +162,8 @@ class Laser2Grid:
         self.global_y = 0
         self.global_yaw = 0
         self.global_ang_z = 0
-        self.width = int(30 / self.RESOLUTION)
-        self.height = int(30 / self.RESOLUTION)
+        self.width = int(11 / self.RESOLUTION)
+        self.height = int(11 / self.RESOLUTION)
 
         self.grid_map = MapGrid(self.RESOLUTION, self.width, self.height)
         
