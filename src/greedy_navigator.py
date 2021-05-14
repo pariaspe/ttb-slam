@@ -10,6 +10,25 @@ def dumpMap(x, y, ax, show=True):
     plt.draw()
     if show: plt.pause(0.02)  # Tiempo de espera para poder visualizar el camino tomado, sólo si no se miden tiempos
 
+def clean_path(path):
+    new_path = path.copy()
+    removed = 0
+    for i in range(len(path)):
+        try:
+            if path[i][0] == path[i+1][0] == path[i+2][0]:
+                new_path.pop(i+1-removed)
+                removed += 1
+            elif path[i][1] == path[i+1][1] == path[i+2][1]:
+                new_path.pop(i+1-removed)
+                removed += 1
+            elif path[i][0] - path[i+1][0] == path[i+1][0] - path[i+2][0] and path[i][1] - path[i+1][1] == path[i+1][1] - path[i+2][1]:
+                new_path.pop(i+1-removed)
+                removed += 1
+        except:
+            break
+        
+    return new_path
+
 def best_first_search(intMap, START_POINT, END_POINT):
 
     # Se inicializa y dibuja el gráfico
@@ -183,7 +202,10 @@ def best_first_search(intMap, START_POINT, END_POINT):
         plt.draw()
         idx = pathPoints.index(lastParent)
         lastParent = parentPoints[idx]
-    plt.pause(3)
+    plt.ioff()
+    plt.show()
+
+    found_path = clean_path(found_path)
     return found_path
 
 
@@ -204,3 +226,4 @@ if __name__ == "__main__":
     start = {"x":1, "y":1}
     end = {"x":8, "y":1}
     path = best_first_search(img, start, end)
+    #print(path)
