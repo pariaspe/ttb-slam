@@ -3,6 +3,7 @@
 import numpy as np
 import cv2
 import rospy
+import matplotlib.pyplot as plt
 
 def generate_voronoi(original_img):
     ''' Loads a binary map and returns the voronoi representation'''
@@ -47,6 +48,8 @@ def generate_voronoi(original_img):
 
     # Free spaces = 0
     ret, final_img = cv2.threshold(skel, 0, 1, cv2.THRESH_BINARY_INV)
+    plt.imshow(final_img, cmap='Greys',  interpolation='nearest')
+    plt.savefig('Generated/voronoi.png')
     return final_img
 
 
