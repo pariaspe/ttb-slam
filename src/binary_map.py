@@ -2,7 +2,7 @@ import rospy
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
-
+from voronoi import generate_voronoi
 # define grid_resol as 1m so we can match the initial maps
 
 
@@ -22,9 +22,9 @@ class MyBinaryMap:
         """
         binary_grid = np.copy(self.grid)
         binary_grid = binary_grid/100
-        binary_grid[binary_grid >= 0.3] = 1
+        #binary_grid[binary_grid >= 0.5] = 1
         binary_grid[binary_grid < 0] = 1
-        binary_grid[binary_grid < 0.3] = 0
+        #binary_grid[binary_grid < 0.5] = 0
         return binary_grid
 
 
@@ -38,8 +38,10 @@ class MyBinaryMap:
         new_shape = int(self.grid.shape[0]/self.grid_resol), int(self.grid.shape[1]/self.grid_resol)
         new_grid = np.copy(binary_full_grid)
         sh = new_shape[0], self.grid.shape[0]//new_shape[0], new_shape[1], self.grid.shape[1]//new_shape[1]
-        
-        return np.rint(new_grid.reshape(sh).mean(-1).mean(1))
+        new_grid = new_grid.reshape(sh).mean(-1).mean(1)
+        new_grid[new_grid > 0.2] = 1
+        new_grid[new_grid <= 0.2] = 0
+        return np.rint(new_grid)
 
     def plotter(self, binary):
         """
@@ -49,13 +51,14 @@ class MyBinaryMap:
         """
         plt.imshow(binary, cmap='Greys',  interpolation='nearest')
         plt.savefig('Generated/binary_map.png')
+        generate_voronoi(binary)
         np.savetxt("Generated/binary_map.csv", binary, delimiter=",")
 
     def run(self):
         binary_map = self.occupancy_to_binary()
         binary_map = self.reduce_resolution(binary_map)
         self.plotter(binary_map)
-
+        
     def grid_to_img(grid):
         """
 
