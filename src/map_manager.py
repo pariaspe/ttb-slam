@@ -17,8 +17,9 @@ class MapManager:
 
         self.binary_srv = rospy.Service("my_map/binary/get", GetMap, self.get_binary_map)
  
-        #binary resolution map (include in brain or get from ros param)
+        # binary resolution map (include in brain or get from ros param)
         self.binary_resol = int(1/0.05)
+
     def get_occupancy_grid(self, req):
         return self._map
 
@@ -32,11 +33,12 @@ class MapManager:
         return binary_map
 
     def occupancy_to_binary(self):
-        #prepares map to filter to binary
+        # prepares map to filter to binary
         binary_grid = np.copy(self._map)
         binary_grid = binary_grid/100
         binary_grid[binary_grid < 0] = 1
-        #reduces resolution of map to filter error
+
+        # reduces resolution of map to filter error
         new_shape = int(self._map.shape[0]/self.binary_resol), int(self._map.shape[1]/self.binary_resol)
         new_grid = np.copy(binary_grid)
         sh = new_shape[0], self._map.shape[0]//new_shape[0], new_shape[1], self._map.shape[1]//new_shape[1]
@@ -50,6 +52,7 @@ class MapManager:
         plt.imshow(binary_filtered, cmap='Greys',  interpolation='nearest')
         plt.savefig('Generated/binary_map.png')
         np.savetext("Generated/binary_map.csv", binary_filtered, delimiter=",")
+
 
 if __name__ == "__main__":
     map_manager = MapManager()
