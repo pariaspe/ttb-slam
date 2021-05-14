@@ -57,45 +57,41 @@ class MyTurtlebot:
         dists = self.__ranges
         return dists
 
-    def set_vel(self, vx=0, vy=0, vz=0, ax=0, ay=0, az=0):
+    def set_vel(self, vx=0, az=0):
         vel_msg = Twist()
         vel_msg.linear.x = vx
-        vel_msg.linear.y = vy
-        vel_msg.linear.z = vz
-        vel_msg.angular.x = ax
-        vel_msg.angular.y = ay
+        vel_msg.linear.y = 0
+        vel_msg.linear.z = 0
+        vel_msg.angular.x = 0
+        vel_msg.angular.y = 0
         vel_msg.angular.z = az
 
         self.vel_pub.publish(vel_msg)
 
     def set_pos(self, x, y, tolerance=0.01):
-        ang_pid = PID(P=2, I=0.0, D=0.0)
-        linear_pid = PID(P=0.5, I=0.0, D=0.0)
-        pose = self.get_estimated_pose()
-        x0 = pose.position.x
-        y0 = pose.position.y
+        ang_pid = PID(P=1, I=0, D=1)
+        linear_pid = PID(P=0.5, I=0, D=0)
 
-        theta = atan2(y - y0, x - x0)
+        pose = self.get_estimated_pose()
+        theta = atan2(y - pose.position.y, x - pose.position.x)
         ang_pid.setPoint(theta)
         ang_pid.update(self.get_yaw())
-        while ang_pid.getError() > tolerance:
-            # print(ang_pid.getError(), self.get_yaw())
+        while abs(ang_pid.getError()) > tolerance:
             az = ang_pid.update(self.get_yaw())
             self.set_vel(az=az)
         self.stop()
 
-        dist = sqrt(pow(x - x0, 2) + pow(y - y0, 2))
+        dist = sqrt(pow(x, 2) + pow(y, 2))
         linear_pid.setPoint(dist)
-        linear_pid.update(0)
-        while linear_pid.getError() > tolerance:
-            # print(linear_pid.getError())
+        linear_pid.update(sqrt(pow(pose.position.x, 2) + pow(pose.position.y, 2)))
+        while abs(linear_pid.getError()) > tolerance:
             pose = self.get_estimated_pose()
 
             ang_pid.setPoint(atan2(y - pose.position.y, x - pose.position.x))
             az = ang_pid.update(self.get_yaw())
 
-            dist = sqrt(pow(pose.position.x - x0, 2) + pow(pose.position.y - y0, 2))
-            vx = linear_pid.update(dist)
+            dist = sqrt(pow(pose.position.x, 2) + pow(pose.position.y, 2))
+            vx = abs(linear_pid.update(dist))
 
             self.set_vel(vx=vx, az=az)
         self.stop()
@@ -104,7 +100,7 @@ class MyTurtlebot:
         default_resol = 10
         angle_resol = int(angle_resol)  # to avoid introduced floats
         if 360 % angle_resol != 0 or angle_resol<1:
-            print('Invalid resolution, setting value to default --> ',default_resol)
+            print('Invalid resolution, setting value to default --> ', default_resol)
             angle_resol = default_resol
         
         vect_size = int(round(360/angle_resol, 0))
