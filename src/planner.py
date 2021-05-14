@@ -20,10 +20,10 @@ def generate_voronoi(original_img):
     # Load map as an image
     ret, original_img = cv2.threshold(original_img, 0, 1, cv2.THRESH_BINARY_INV)
 
-    # Resize the image for showing purposes
-    # mult = 10
-    # dim = (original_img.shape[1] * mult, original_img.shape[0] * mult)
-    # original_img = cv2.resize(original_img, dim, interpolation = cv2.INTER_AREA)
+    # Resize the image to improve voronoi precision
+    mult = 10
+    dim = (original_img.shape[1] * mult, original_img.shape[0] * mult)
+    original_img = cv2.resize(original_img, dim, interpolation = cv2.INTER_AREA)
 
     img = original_img.copy()
 
