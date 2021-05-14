@@ -119,14 +119,6 @@ class MapGrid:
             self.grid[x, y] += 20
         elif self.grid[x, y] > 90:
             self.grid[x, y] = 100
-
-        # TEMPORAL #
-        t1 = time.time()
-        total = int(t1 - self.t0)
-        if total % 50 == 0: self.plotgrid = True
-        if total > 20 and self.plotgrid:
-            self.binary_map = MyBinaryMap(self.grid, self.binary_resol/self.resolution).run()
-            self.plotgrid = False
       
     def _mark_as_probable_obs(self, x, y):
         if self.grid[int(x), int(y)] < 1:

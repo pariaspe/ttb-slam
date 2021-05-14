@@ -2,7 +2,7 @@
 import rospy
 from nav_msgs.srv import GetPlan, GetMap
 from nav_msgs.msg import Path
-from geometry_msgs import PoseStamped
+from geometry_msgs.msg import PoseStamped
 
 import numpy as np
 import cv2

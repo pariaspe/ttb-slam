@@ -5,7 +5,7 @@ import numpy as np
 def dumpMap(x, y, ax, show=True):
     ax.plot(x, y, 'bx', markersize=8)
     plt.draw()
-    if show: plt.pause(0.02)  # Tiempo de espera para poder visualizar el camino tomado, sólo si no se miden tiempos
+    if show: plt.pause(0.02)  # Tiempo de espera para poder visualizar el camino tomado, solo si no se miden tiempos
 
 def clean_path(path):
     new_path = path.copy()
@@ -31,7 +31,7 @@ def best_first_search(intMap, start, end):
     START_POINT = {'x':start[0], 'y':start[1]}
     END_POINT = {'x':end[0], 'y':end[1]}
 
-    # Se inicializa y dibuja el gráfico
+    # Se inicializa y dibuja el grafico
     #fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 15))
     #plt.ion()   # Para mostrar en todo momento el avance
 
@@ -50,14 +50,14 @@ def best_first_search(intMap, start, end):
     #plt.draw()
     #plt.show()
 
-    # Función para añadir checkpoints en caso de que no encuentre el objetivo
-    # Los últimos puntos son los preferenciales al ser una stack LIFO
+    # Funcion para anhadir checkpoints en caso de que no encuentre el objetivo
+    # Los ultimos puntos son los preferenciales al ser una stack LIFO
     # Por lo que es un algoritmo que tiende a la derecha y arriba
     checkPoints = []
     pathPoints = []     # Se guardan todos los puntos obtenidos
     parentPoints = []   # Se guardan los padres de cada punto obtenido 
     def add_checkPoints(x, y):
-        # Añade un checkpoints alrededor del punto actual
+        # Anhade un checkpoints alrededor del punto actual
         # left
         if intMap[x][y - 1] == 0:
             newCheckpoint = (x, y - 1)
@@ -131,12 +131,12 @@ def best_first_search(intMap, start, end):
     
     add_checkPoints(START_POINT['x'], START_POINT['y'])
 
-    # Inicialización de parámetros
+    # Inicializacion de parametros
     nextPoint = {'x': START_POINT['x'], 'y': START_POINT['y']}
     yesExitX, yesExitY = True, True
     directionX, directionY = 0, 0
 
-    # Se ejecuta el bucle hasta encontrar una solución
+    # Se ejecuta el bucle hasta encontrar una solucion
     done = False
     while not done:
 
@@ -144,12 +144,12 @@ def best_first_search(intMap, start, end):
         while yesExitX or yesExitY:
             # Avanzar en X
             if (END_POINT['x'] - nextPoint['x'] != 0):
-                directionX = int((END_POINT['x'] - nextPoint['x'])/abs(END_POINT['x'] - nextPoint['x'])) # Determinar la dirección en X
+                directionX = int((END_POINT['x'] - nextPoint['x'])/abs(END_POINT['x'] - nextPoint['x'])) # Determinar la direccion en X
                 if intMap[nextPoint['x'] + directionX][nextPoint['y']] == 0:
                     nextPoint['x'] = nextPoint['x'] + directionX
                     intMap[nextPoint['x']][nextPoint['y']] = 2          # Marcar como visitado
                     #dumpMap(nextPoint['y'], nextPoint['x'], ax1)
-                    add_checkPoints(nextPoint['x'], nextPoint['y'])     # Añadir los checkpoints correspondientes
+                    add_checkPoints(nextPoint['x'], nextPoint['y'])     # Anhadir los checkpoints correspondientes
                     yesExitX = True
                 else:
                     yesExitX = False
@@ -163,12 +163,12 @@ def best_first_search(intMap, start, end):
             
             # Avanzar en Y
             if (END_POINT['y'] - nextPoint['y'] != 0):
-                directionY = int((END_POINT['y'] - nextPoint['y'])/abs(END_POINT['y'] - nextPoint['y'])) # Determinar la dirección en Y
+                directionY = int((END_POINT['y'] - nextPoint['y'])/abs(END_POINT['y'] - nextPoint['y'])) # Determinar la direccion en Y
                 if intMap[nextPoint['x']][nextPoint['y'] + directionY] == 0:
                     nextPoint['y'] = nextPoint['y'] + directionY
                     intMap[nextPoint['x']][nextPoint['y']] = 2          # Marcar como visitado
                     #dumpMap(nextPoint['y'], nextPoint['x'], ax1)
-                    add_checkPoints(nextPoint['x'], nextPoint['y'])     # Añadir los checkpoints correspondientes
+                    add_checkPoints(nextPoint['x'], nextPoint['y'])     # Anhadir los checkpoints correspondientes
                     
                     yesExitY = True
                 else:
@@ -184,17 +184,17 @@ def best_first_search(intMap, start, end):
         if (END_POINT['x'] == nextPoint['x']) and (END_POINT['y'] == nextPoint['y']):
             break
         
-        # Cuando no puede dirigirse hacia el objetivo cogemos el último checkpoint
+        # Cuando no puede dirigirse hacia el objetivo cogemos el ultimo checkpoint
         
         lastCheckpoint = checkPoints.pop()
         nextPoint['x'], nextPoint['y'] = lastCheckpoint[0], lastCheckpoint[1]
         intMap[nextPoint['x']][nextPoint['y']] = 2          # Marcar como visitado
         #dumpMap(nextPoint['y'], nextPoint['x'], ax1)
-        add_checkPoints(nextPoint['x'], nextPoint['y'])     # Añadir los checkpoints correspondientes
+        add_checkPoints(nextPoint['x'], nextPoint['y'])     # Anhadir los checkpoints correspondientes
         yesExitX, yesExitY = True, True
         
     
-    # Gráfica el camino más óptimo encontrado
+    # Grafica el camino mas optimo encontrado
     found_path = []
     lastParent = (nextPoint['x'], nextPoint['y'])
     while lastParent != (START_POINT['x'], START_POINT['y']):
