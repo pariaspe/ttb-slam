@@ -6,6 +6,15 @@ from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Pose
+import tf
+
+from PID import PID
+from math import sqrt, pow, atan2
+
+
+def quat_to_euler(orientation):
+    quat = (orientation.x, orientation.y, orientation.z, orientation.w)
+    return tf.transformations.euler_from_quaternion(quat)  # roll, pitch, yaw
 
 
 class MyTurtlebot:
@@ -35,6 +44,11 @@ class MyTurtlebot:
     def get_estimated_pose(self):
         return self.__estimated_pose
 
+    def get_yaw(self):
+        pose = self.get_estimated_pose()
+        _, _, yaw = quat_to_euler(pose.orientation)
+        return yaw
+
     def get_frontal_dist(self):
         dist = self.__ranges[-22:] + self.__ranges[:23]  # from -22.5 to 22.5
         return dist
@@ -54,9 +68,41 @@ class MyTurtlebot:
 
         self.vel_pub.publish(vel_msg)
 
+    def set_pos(self, x, y, tolerance=0.01):
+        ang_pid = PID(P=2, I=0.0, D=0.0)
+        linear_pid = PID(P=0.5, I=0.0, D=0.0)
+        pose = self.get_estimated_pose()
+        x0 = pose.position.x
+        y0 = pose.position.y
+
+        theta = atan2(y - y0, x - x0)
+        ang_pid.setPoint(theta)
+        ang_pid.update(self.get_yaw())
+        while ang_pid.getError() > tolerance:
+            # print(ang_pid.getError(), self.get_yaw())
+            az = ang_pid.update(self.get_yaw())
+            self.set_vel(az=az)
+        self.stop()
+
+        dist = sqrt(pow(x - x0, 2) + pow(y - y0, 2))
+        linear_pid.setPoint(dist)
+        linear_pid.update(0)
+        while linear_pid.getError() > tolerance:
+            # print(linear_pid.getError())
+            pose = self.get_estimated_pose()
+
+            ang_pid.setPoint(atan2(y - pose.position.y, x - pose.position.x))
+            az = ang_pid.update(self.get_yaw())
+
+            dist = sqrt(pow(pose.position.x - x0, 2) + pow(pose.position.y - y0, 2))
+            vx = linear_pid.update(dist)
+
+            self.set_vel(vx=vx, az=az)
+        self.stop()
+
     def get_sensor_dist_resol(self, angle_resol):
         default_resol = 10
-        angle_resol = int(angle_resol) #to avoid introduced floats
+        angle_resol = int(angle_resol)  # to avoid introduced floats
         if 360 % angle_resol != 0 or angle_resol<1:
             print('Invalid resolution, setting value to default --> ',default_resol)
             angle_resol = default_resol
@@ -65,7 +111,7 @@ class MyTurtlebot:
         sensor_resol = np.empty(vect_size, dtype=object)
 
         for i in range(1, vect_size):
-            if self.__ranges[(i-1)*angle_resol] != np.inf : #filtering out of range values
+            if self.__ranges[(i-1)*angle_resol] != np.inf:  # filtering out of range values
                 sensor_resol[i] = self.__ranges[(i-1)*angle_resol]
         
         return sensor_resol
