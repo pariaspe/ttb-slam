@@ -22,10 +22,9 @@ class MyBinaryMap:
         """
         binary_grid = np.copy(self.grid)
         binary_grid = binary_grid/100
-        binary_grid[binary_grid >= 0.5] = 1
+        binary_grid[binary_grid >= 0.3] = 1
         binary_grid[binary_grid < 0] = 1
-        binary_grid[binary_grid < 0.5] = 0
-        print(binary_grid)
+        binary_grid[binary_grid < 0.3] = 0
         return binary_grid
 
 
