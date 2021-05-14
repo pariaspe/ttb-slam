@@ -2,6 +2,8 @@
 import rospy
 from nav_msgs.srv import GetMap, SetMap
 from nav_msgs.msg import OccupancyGrid
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 class MapManager:
@@ -47,7 +49,7 @@ class MapManager:
     def binary_plotter(self, binary_filtered):
         plt.imshow(binary_filtered, cmap='Greys',  interpolation='nearest')
         plt.savefig('Generated/binary_map.png')
-        np.savetext("Generated/binary_map.csv", binary, delimiter=",")
+        np.savetext("Generated/binary_map.csv", binary_filtered, delimiter=",")
 
 if __name__ == "__main__":
     map_manager = MapManager()
