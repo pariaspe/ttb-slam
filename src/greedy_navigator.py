@@ -32,20 +32,21 @@ def best_first_search(intMap, start, end):
     END_POINT = {'x':end[0], 'y':end[1]}
 
     # Se inicializa y dibuja el gráfico
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 15))
+    #fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 15))
     #plt.ion()   # Para mostrar en todo momento el avance
 
     # Graficar el mapa inicial
-    for i in range(intMap.shape[0]):
-        for k in range(intMap.shape[1]):
-            if intMap[i, k] == 1:
-                ax1.plot(k,i,'rs', markersize=10)
-                ax2.plot(k,i,'rs', markersize=10)
+
+    #for i in range(intMap.shape[0]):
+    #    for k in range(intMap.shape[1]):
+    #        if intMap[i, k] == 1:
+    #            ax1.plot(k,i,'rs', markersize=10)
+    #            ax2.plot(k,i,'rs', markersize=10)
     # Graficar los puntos de inicio
-    ax1.plot(START_POINT['y'], START_POINT['x'], 'ko', markersize=8)
-    ax2.plot(START_POINT['y'], START_POINT['x'], 'ko', markersize=8)
-    ax1.plot(END_POINT['y'], END_POINT['x'], 'go', markersize=8)
-    ax2.plot(END_POINT['y'], END_POINT['x'], 'go', markersize=8)
+    #ax1.plot(START_POINT['y'], START_POINT['x'], 'ko', markersize=8)
+    #ax2.plot(START_POINT['y'], START_POINT['x'], 'ko', markersize=8)
+    #ax1.plot(END_POINT['y'], END_POINT['x'], 'go', markersize=8)
+    #ax2.plot(END_POINT['y'], END_POINT['x'], 'go', markersize=8)
     #plt.draw()
     #plt.show()
 
@@ -198,7 +199,7 @@ def best_first_search(intMap, start, end):
     lastParent = (nextPoint['x'], nextPoint['y'])
     while lastParent != (START_POINT['x'], START_POINT['y']):
         found_path.append(lastParent)
-        ax1.plot(lastParent[1], lastParent[0], 'rx', markersize=8)
+        #ax1.plot(lastParent[1], lastParent[0], 'rx', markersize=8)
         #plt.draw()
         idx = pathPoints.index(lastParent)
         lastParent = parentPoints[idx]
