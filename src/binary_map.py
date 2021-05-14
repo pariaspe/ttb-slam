@@ -41,6 +41,7 @@ class MyBinaryMap:
         new_grid = new_grid.reshape(sh).mean(-1).mean(1)
         new_grid[new_grid > 0.2] = 1
         new_grid[new_grid <= 0.2] = 0
+
         return np.rint(new_grid)
 
     def plotter(self, binary):
@@ -49,16 +50,29 @@ class MyBinaryMap:
         :param binary: binary map to save and plot
         :return:
         """
+        #kernel to erode map
+        #kernel = np.ones
         plt.imshow(binary, cmap='Greys',  interpolation='nearest')
         plt.savefig('Generated/binary_map.png')
+        #binary_eroded = cv2.erode(binary)
         generate_voronoi(binary)
         np.savetxt("Generated/binary_map.csv", binary, delimiter=",")
+
+    def upscale(self, binary, factor):
+        new_shape = np.shape(binary)
+        dimx, dimy = np.array(np.shape(binary)) * factor
+        binary_big = cv2.resize(binary, dsize = (dimx,dimy), interpolation=cv2.INTER_CUBIC)
+        plt.imshow(binary_big, cmap='Greys',  interpolation='nearest')
+        plt.savefig('Generated/binary_map_upscaled.png')
+        return binary_big
 
     def run(self):
         binary_map = self.occupancy_to_binary()
         binary_map = self.reduce_resolution(binary_map)
         self.plotter(binary_map)
-        
+        binary_big =self.upscale(binary_map, 4)
+        generate_voronoi(binary_big)
+
     def grid_to_img(grid):
         """
 
