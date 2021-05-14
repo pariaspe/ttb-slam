@@ -2,6 +2,65 @@
 import rospy
 from nav_msgs.srv import GetPlan, GetMap
 from nav_msgs.msg import Path
+from geometry_msgs import PoseStamped
+
+import numpy as np
+import cv2
+import matplotlib.pyplot as plt
+from greedy_navigator import best_first_search
+
+
+def generate_voronoi(original_img):
+    """
+    Loads a binary map and returns the voronoi representation
+    :param original_img:
+    :return:
+    """
+
+    # Load map as an image
+    ret, original_img = cv2.threshold(original_img, 0, 1, cv2.THRESH_BINARY_INV)
+
+    # Resize the image for showing purposes
+    # mult = 10
+    # dim = (original_img.shape[1] * mult, original_img.shape[0] * mult)
+    # original_img = cv2.resize(original_img, dim, interpolation = cv2.INTER_AREA)
+
+    img = original_img.copy()
+
+    size = np.size(img)
+    skel = np.zeros(img.shape, img.dtype)
+
+    # element = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(15,15))  # Element for morph transformations
+    # img = cv2.erode(img, element)
+
+    element = cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3))  # Element for morph transformations
+    done = False
+
+    # Skelitization
+    while not done:
+        eroded = cv2.erode(img, element)
+        temp = cv2.dilate(eroded, element)
+        temp = cv2.subtract(img, temp)
+        skel = cv2.bitwise_or(skel, temp)
+        img = eroded.copy()
+
+        # Stop when the image is fully eroded
+        zeros = size - cv2.countNonZero(img)
+        if zeros == size:
+            done = True
+
+    # Image showing
+
+    # cv2.imshow("skel",skel)
+    # cv2.imshow("image", original_img)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
+
+    # Free spaces = 0
+    ret, final_img = cv2.threshold(skel, 0, 1, cv2.THRESH_BINARY_INV)
+    plt.imshow(final_img, cmap='Greys', interpolation='nearest')
+    plt.savefig('Generated/voronoi.png')
+    return final_img
 
 
 class Planner:
@@ -9,8 +68,8 @@ class Planner:
         rospy.init_node("Planner")
         rospy.loginfo("Node initialized")
 
-        rospy.wait_for_service("my_map/get")
-        self.map_client = rospy.ServiceProxy("my_map/get", GetMap)
+        rospy.wait_for_service("my_map/binary/get")
+        self.map_client = rospy.ServiceProxy("my_map/binary/get", GetMap)
 
         self.path_srv = rospy.Service("planner/path/get", GetPlan, self.get_path)
 
@@ -20,8 +79,16 @@ class Planner:
         tolerance = req.tolerance
 
         map_ = self.map_client()
-        # TODO calc path
+        voronoi_graph = generate_voronoi(map_)
+        path_list = best_first_search(voronoi_graph,
+                                      (start.pose.position.x, start.pose.position.y),
+                                      (end.pose.position.x, end.pose.position.y))
         path = Path()
+        for p in path_list:
+            point = PoseStamped()
+            point.pose.position.x = p[0]
+            point.pose.position.y = p[1]
+            path.poses.append(point)
         return path
 
 
