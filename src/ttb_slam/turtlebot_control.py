@@ -57,13 +57,13 @@ class MyTurtlebot:
         dists = self.__ranges
         return dists
 
-    def set_vel(self, vx=0, vy=0, vz=0, ax=0, ay=0, az=0):
+    def set_vel(self, vx=0, az=0):
         vel_msg = Twist()
         vel_msg.linear.x = vx
-        vel_msg.linear.y = vy
-        vel_msg.linear.z = vz
-        vel_msg.angular.x = ax
-        vel_msg.angular.y = ay
+        vel_msg.linear.y = 0
+        vel_msg.linear.z = 0
+        vel_msg.angular.x = 0
+        vel_msg.angular.y = 0
         vel_msg.angular.z = az
 
         self.vel_pub.publish(vel_msg)
