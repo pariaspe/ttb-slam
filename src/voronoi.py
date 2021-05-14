@@ -5,6 +5,8 @@ import cv2
 import rospy
 
 def generate_voronoi(original_img):
+    ''' Loads a binary map and returns the voronoi representation'''
+    
     # Load map as an image
     ret, original_img = cv2.threshold(original_img, 0, 1, cv2.THRESH_BINARY_INV)
 
