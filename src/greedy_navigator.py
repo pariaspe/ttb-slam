@@ -1,9 +1,6 @@
 #! /usr/bin/env python
-import random
 import matplotlib.pyplot as plt
-import time
 import numpy as np
-from voronoi import generate_voronoi
 
 def dumpMap(x, y, ax, show=True):
     ax.plot(x, y, 'bx', markersize=8)
@@ -29,11 +26,14 @@ def clean_path(path):
         
     return new_path
 
-def best_first_search(intMap, START_POINT, END_POINT):
+def best_first_search(intMap, start, end):
+
+    START_POINT = {'x':start[0], 'y':start[1]}
+    END_POINT = {'x':end[0], 'y':end[1]}
 
     # Se inicializa y dibuja el gráfico
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 15))
-    plt.ion()   # Para mostrar en todo momento el avance
+    #plt.ion()   # Para mostrar en todo momento el avance
 
     # Graficar el mapa inicial
     for i in range(intMap.shape[0]):
@@ -46,8 +46,8 @@ def best_first_search(intMap, START_POINT, END_POINT):
     ax2.plot(START_POINT['y'], START_POINT['x'], 'ko', markersize=8)
     ax1.plot(END_POINT['y'], END_POINT['x'], 'go', markersize=8)
     ax2.plot(END_POINT['y'], END_POINT['x'], 'go', markersize=8)
-    plt.draw()
-    plt.show()
+    #plt.draw()
+    #plt.show()
 
     # Función para añadir checkpoints en caso de que no encuentre el objetivo
     # Los últimos puntos son los preferenciales al ser una stack LIFO
@@ -147,7 +147,7 @@ def best_first_search(intMap, START_POINT, END_POINT):
                 if intMap[nextPoint['x'] + directionX][nextPoint['y']] == 0:
                     nextPoint['x'] = nextPoint['x'] + directionX
                     intMap[nextPoint['x']][nextPoint['y']] = 2          # Marcar como visitado
-                    dumpMap(nextPoint['y'], nextPoint['x'], ax1)
+                    #dumpMap(nextPoint['y'], nextPoint['x'], ax1)
                     add_checkPoints(nextPoint['x'], nextPoint['y'])     # Añadir los checkpoints correspondientes
                     yesExitX = True
                 else:
@@ -166,7 +166,7 @@ def best_first_search(intMap, START_POINT, END_POINT):
                 if intMap[nextPoint['x']][nextPoint['y'] + directionY] == 0:
                     nextPoint['y'] = nextPoint['y'] + directionY
                     intMap[nextPoint['x']][nextPoint['y']] = 2          # Marcar como visitado
-                    dumpMap(nextPoint['y'], nextPoint['x'], ax1)
+                    #dumpMap(nextPoint['y'], nextPoint['x'], ax1)
                     add_checkPoints(nextPoint['x'], nextPoint['y'])     # Añadir los checkpoints correspondientes
                     
                     yesExitY = True
@@ -188,7 +188,7 @@ def best_first_search(intMap, START_POINT, END_POINT):
         lastCheckpoint = checkPoints.pop()
         nextPoint['x'], nextPoint['y'] = lastCheckpoint[0], lastCheckpoint[1]
         intMap[nextPoint['x']][nextPoint['y']] = 2          # Marcar como visitado
-        dumpMap(nextPoint['y'], nextPoint['x'], ax1)
+        #dumpMap(nextPoint['y'], nextPoint['x'], ax1)
         add_checkPoints(nextPoint['x'], nextPoint['y'])     # Añadir los checkpoints correspondientes
         yesExitX, yesExitY = True, True
         
@@ -199,11 +199,11 @@ def best_first_search(intMap, START_POINT, END_POINT):
     while lastParent != (START_POINT['x'], START_POINT['y']):
         found_path.append(lastParent)
         ax1.plot(lastParent[1], lastParent[0], 'rx', markersize=8)
-        plt.draw()
+        #plt.draw()
         idx = pathPoints.index(lastParent)
         lastParent = parentPoints[idx]
-    plt.ioff()
-    plt.show()
+    #plt.ioff()
+    #plt.show()
 
     found_path = clean_path(found_path)
     return found_path
@@ -223,7 +223,7 @@ if __name__ == "__main__":
                     [1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.],
                     [1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]])
     
-    start = {"x":1, "y":1}
-    end = {"x":8, "y":1}
+    start = (1,1)
+    end = (8,1)
     path = best_first_search(img, start, end)
-    #print(path)
+    print(path)
