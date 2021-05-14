@@ -11,9 +11,6 @@ def quat_to_euler(orientation):
     quat = (orientation.x, orientation.y, orientation.z, orientation.w)
     return tf.transformations.euler_from_quaternion(quat)  # roll, pitch, yaw
 
-def calc_rel_pose(pose, dist):
-    _, _, yaw = quat_to_euler(pose.orientation)
-    return pose.position.x + cos(yaw)*dist, pose.position.y + sin(yaw)*dist
 
 def detect_wall(ranges):
     # Obtain the index of the closest wall
@@ -70,9 +67,12 @@ def rotate_against_wall(turtle, angle, direction):
         turtle_orientation = math.degrees(quat_to_euler(turtle.get_estimated_pose().orientation)[2])
         turtle_orientation = remap_angle(turtle_orientation)
 
-        if initial_orientation + angle > 360:   # Check if the turn will overflow
+        if initial_orientation + angle > 360:   # Check if the turn will overlap
             if turtle_orientation < 100:
                 turtle_orientation += 360
+        elif initial_orientation - angle < 0:
+            if turtle_orientation > 280:
+                turtle_orientation -= 360
         
 
 
@@ -87,8 +87,8 @@ def main():
     print('Initial position is: \n',initial_position)
 
     timer = 0
-    position_error = 0.5
-    #wall_angle = 15
+    position_error = 1
+    wall_dist = 1
     bug_initialized = False
     while turtle.is_running():
         pose = turtle.get_estimated_pose()
@@ -114,7 +114,7 @@ def main():
             turtle.set_vel(az=-0.2, vx=0.3)
             time.sleep(0.2)
 
-        if full_distances[0] < 0.8: # If there is wall in front
+        if full_distances[0] < wall_dist: # If there is wall in front
             print('Detected wall in front')
             turtle.stop()   # Stop turtle
             angle = calculate_wall_angle(full_distances, 0)
@@ -131,7 +131,7 @@ def main():
             time.sleep(3)
             
         
-        if timer > 100:     # Little delay to give time to move from original position
+        if timer > 1000:     # Little delay to give time to move from original position
             # Check whether the ttb arrived to the initial position
             current_position = turtle.get_estimated_pose().position
             if abs(current_position.y - initial_position.y) < position_error and abs(current_position.x - initial_position.x) < position_error:
