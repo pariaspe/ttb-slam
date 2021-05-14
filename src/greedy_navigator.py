@@ -70,6 +70,38 @@ def best_first_search(intMap, START_POINT, END_POINT):
                 pathPoints.append(newCheckpoint)
                 parentPoints.append((x, y))
         
+        # up-left
+        if intMap[x - 1][y - 1] == 0:
+            newCheckpoint = (x - 1, y - 1)
+            if newCheckpoint not in checkPoints:
+                checkPoints.append(newCheckpoint)
+                pathPoints.append(newCheckpoint)
+                parentPoints.append((x, y))
+
+        # up-right
+        if intMap[x - 1][y + 1] == 0:
+            newCheckpoint = (x - 1, y + 1)
+            if newCheckpoint not in checkPoints:
+                checkPoints.append(newCheckpoint)
+                pathPoints.append(newCheckpoint)
+                parentPoints.append((x, y))
+
+        # down-left
+        if intMap[x + 1][y - 1] == 0:
+            newCheckpoint = (x + 1, y - 1)
+            if newCheckpoint not in checkPoints:
+                checkPoints.append(newCheckpoint)
+                pathPoints.append(newCheckpoint)
+                parentPoints.append((x, y))
+
+        # down-right
+        if intMap[x + 1][y + 1] == 0:
+            newCheckpoint = (x + 1, y + 1)
+            if newCheckpoint not in checkPoints:
+                checkPoints.append(newCheckpoint)
+                pathPoints.append(newCheckpoint)
+                parentPoints.append((x, y))
+        
         # Borra el punto actual en caso de que estuviese en los checkpoints
         if (x, y) in checkPoints:
             idx = checkPoints.index((x, y))
@@ -129,113 +161,46 @@ def best_first_search(intMap, START_POINT, END_POINT):
                 done = True
                 break
 
-        if done:
+        if (END_POINT['x'] == nextPoint['x']) and (END_POINT['y'] == nextPoint['y']):
             break
-
+        
         # Cuando no puede dirigirse hacia el objetivo cogemos el último checkpoint
+        
         lastCheckpoint = checkPoints.pop()
         nextPoint['x'], nextPoint['y'] = lastCheckpoint[0], lastCheckpoint[1]
         intMap[nextPoint['x']][nextPoint['y']] = 2          # Marcar como visitado
         dumpMap(nextPoint['y'], nextPoint['x'], ax1)
         add_checkPoints(nextPoint['x'], nextPoint['y'])     # Añadir los checkpoints correspondientes
         yesExitX, yesExitY = True, True
+        
     
     # Gráfica el camino más óptimo encontrado
+    found_path = []
     lastParent = (nextPoint['x'], nextPoint['y'])
     while lastParent != (START_POINT['x'], START_POINT['y']):
+        found_path.append(lastParent)
         ax1.plot(lastParent[1], lastParent[0], 'rx', markersize=8)
         plt.draw()
         idx = pathPoints.index(lastParent)
         lastParent = parentPoints[idx]
+    plt.pause(3)
+    return found_path
 
-''' PRESCINDIBLE
-# Algoritm Breath First Search proporcionado por el profesor para comparación
-def breath_first_search(intMap, START_POINT, END_POINT, show):
-    class Node:
-        def __init__(self, x, y, myId, parentId):
-            self.x = x
-            self.y = y
-            self.myId = myId
-            self.parentId = parentId
 
-    nodes = []
-
-    init = Node(START_POINT['x'], START_POINT['y'], 0, -2)
-    nodes.append(init)
-
-    done = False
-    goalParentId = -1
-
-    while not done:
-        for node in nodes:
-            # up
-            tmpX = node.x - 1
-            tmpY = node.y
-            if( intMap[tmpX][tmpY] == 4 ):
-                goalParentId = node.myId
-                done = True
-                break
-            elif ( intMap[tmpX][tmpY] == 0 ):
-                newNode = Node(tmpX, tmpY, len(nodes), node.myId)
-                intMap[tmpX][tmpY] = 2
-                dumpMap(tmpY, tmpX, ax2, show=show)
-                nodes.append(newNode)
-
-            # down
-            tmpX = node.x + 1
-            tmpY = node.y
-            if( intMap[tmpX][tmpY] == 4 ):
-                goalParentId = node.myId
-                done = True
-                break
-            elif ( intMap[tmpX][tmpY] == 0 ):
-                newNode = Node(tmpX, tmpY, len(nodes), node.myId)
-                intMap[tmpX][tmpY] = 2
-                dumpMap(tmpY, tmpX, ax2, show=show)
-                nodes.append(newNode)
-
-            # right
-            tmpX = node.x
-            tmpY = node.y + 1
-            if( intMap[tmpX][tmpY] == 4 ):
-                goalParentId = node.myId
-                done = True
-                break
-            elif ( intMap[tmpX][tmpY] == 0 ):
-                newNode = Node(tmpX, tmpY, len(nodes), node.myId)
-                intMap[tmpX][tmpY] = 2
-                dumpMap(tmpY, tmpX, ax2, show=show)
-                nodes.append(newNode)
-
-            # left
-            tmpX = node.x
-            tmpY = node.y - 1
-            if( intMap[tmpX][tmpY] == 4 ):
-                goalParentId = node.myId
-                done = True
-                break
-            elif ( intMap[tmpX][tmpY] == 0 ):
-                newNode = Node(tmpX, tmpY, len(nodes), node.myId)
-                intMap[tmpX][tmpY] = 2
-                dumpMap(tmpY, tmpX, ax2, show=show)
-                nodes.append(newNode)
-
-    ok = False
-    while not ok:
-        for node in nodes:
-            if node.myId == goalParentId:
-                ax2.plot(node.y, node.x, 'rx', markersize=8)
-                plt.draw()
-                goalParentId = node.parentId
-                if goalParentId == -2:
-                    ok = True
-'''
-
+# for script testing
 if __name__ == "__main__":
-    img = np.genfromtxt("Generated/binary_map.csv", delimiter=",")
-    skel = generate_voronoi(img)
+    img = np.array([[1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.],
+                    [1., 0., 1., 1., 1., 1., 0., 1., 1., 1., 1.],
+                    [1., 1., 0., 0., 0., 0., 1., 1., 1., 1., 1.],
+                    [1., 0., 1., 1., 0., 0., 1., 1., 1., 1., 1.],
+                    [1., 1., 1., 1., 1., 0., 1., 1., 1., 1., 1.],
+                    [1., 1., 1., 1., 1., 0., 1., 1., 1., 1., 1.],
+                    [1., 0., 1., 1., 0., 0., 1., 1., 1., 1., 1.],
+                    [1., 1., 0., 0., 0., 0., 1., 1., 1., 1., 1.],
+                    [1., 0., 1., 1., 1., 1., 0., 1., 1., 1., 1.],
+                    [1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.],
+                    [1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]])
+    
     start = {"x":1, "y":1}
     end = {"x":8, "y":1}
-    skel[2][1] = 0.
-    skel[7][1] = 0.
-    best_first_search(skel, start, end)
+    path = best_first_search(img, start, end)
