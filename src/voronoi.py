@@ -24,6 +24,7 @@ def generate_voronoi(original_img):
     element = cv2.getStructuringElement(cv2.MORPH_CROSS,(3,3))  # Element for morph transformations
     done = False
 
+    # Skelitization
     while not done:
         eroded = cv2.erode(img,element)
         temp = cv2.dilate(eroded,element)
@@ -31,6 +32,7 @@ def generate_voronoi(original_img):
         skel = cv2.bitwise_or(skel,temp)
         img = eroded.copy()
         
+        # Stop when the image is fully eroded
         zeros = size - cv2.countNonZero(img)
         if zeros==size:
             done = True
@@ -43,6 +45,8 @@ def generate_voronoi(original_img):
     #cv2.waitKey(0)
     #cv2.destroyAllWindows()
 
-    return skel
+    # Free spaces = 0
+    ret, final_img = cv2.threshold(skel, 0, 1, cv2.THRESH_BINARY_INV)
+    return final_img
 
 
