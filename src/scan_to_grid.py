@@ -88,7 +88,7 @@ class MapGrid:
         self.frame = "map"
         self.resolution = resolution
         #for binary resolutions < 0.5 ttb must stop before generating map or range error will distort map
-        self.binary_resol = 0.2
+        self.binary_resol = 1
         self.width = width
         self.height = height
         self.plotgrid = True
@@ -167,8 +167,9 @@ class Laser2Grid:
         self.global_y = 0
         self.global_yaw = 0
         self.global_ang_z = 0
-        self.width = int(11 / self.RESOLUTION)
-        self.height = int(11 / self.RESOLUTION)
+        #if dimensions are not squared, it doesn't work properly
+        self.width = int(25 / self.RESOLUTION)
+        self.height = int(25 / self.RESOLUTION)
 
         self.grid_map = MapGrid(self.RESOLUTION, self.width, self.height)
         
