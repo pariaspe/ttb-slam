@@ -7,7 +7,10 @@ from geometry_msgs.msg import PoseStamped
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
+import time
+
 from greedy_navigator import best_first_search
+from map import MyMap
 
 
 def generate_voronoi(original_img):
@@ -78,8 +81,13 @@ class Planner:
         end = req.goal
         tolerance = req.tolerance
 
-        map_ = self.map_client()
-        voronoi_graph = generate_voronoi(map_)
+        resp = self.map_client()
+        map_ = MyMap()
+        map_.from_msg(resp.map)
+        cv2.imshow("Map BW", MyMap.to_img(map_.grid))
+        cv2.waitKey(0)
+
+        voronoi_graph = generate_voronoi(map_.grid)
         path_list = best_first_search(voronoi_graph,
                                       (start.pose.position.x, start.pose.position.y),
                                       (end.pose.position.x, end.pose.position.y))

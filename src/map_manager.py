@@ -5,13 +5,15 @@ from nav_msgs.msg import OccupancyGrid
 import numpy as np
 import matplotlib.pyplot as plt
 
+from map import MyMap
+
 
 class MapManager:
     def __init__(self):
         rospy.init_node("MapManager")
         rospy.loginfo("Node initialized")
 
-        self._map = OccupancyGrid()
+        self._map = MyMap()
         self.map_getter = rospy.Service("my_map/get", GetMap, self.get_occupancy_grid)
         self.map_setter = rospy.Service("my_map/set", SetMap, self.set_occupancy_grid)
 
@@ -21,16 +23,14 @@ class MapManager:
         self.binary_resol = int(1/0.05)
 
     def get_occupancy_grid(self, req):
-        return self._map
+        return self._map.to_msg()
 
     def set_occupancy_grid(self, req):
-        self._map = req.map
+        self._map.from_msg(req.map)
         return True
 
     def get_binary_map(self, req):
-        binary_map = self.occupancy_to_binary()
-        self.plotter(binary_map)
-        return binary_map
+        return self._map.binary_msg
 
     def occupancy_to_binary(self):
         # prepares map to filter to binary

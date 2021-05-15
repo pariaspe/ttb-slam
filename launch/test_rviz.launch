@@ -24,6 +24,6 @@
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find ttb_slam)/config_files/ttb3_gazebo_model.rviz -f 'world'"/>
   <node name="set_world" pkg="ttb_slam" type="set_tf.py"/>
   <node name="grid_map" pkg="ttb_slam" type="scan_to_grid.py"/>
-  <node name="map_manager" pkg="ttb_slam" type="map_manager.py"/>
-  <node name="planner" pkg="ttb_slam" type="planner.py"/>
+  <node name="map_manager" pkg="ttb_slam" type="map_manager.py" output="screen"/>
+  <node name="planner" pkg="ttb_slam" type="planner.py" output="screen"/>
 </launch>
