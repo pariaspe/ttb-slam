@@ -9,7 +9,6 @@ from math import sin, cos, radians, pi, degrees
 import tf
 import numpy as np
 import time
-from binary_map import MyBinaryMap
 import matplotlib.pyplot as plt
 
 def quat_to_euler(orientation):
@@ -184,10 +183,11 @@ class Laser2Grid:
         robot_pos = self.position_2_grid(self.global_x, self.global_y)
 
         points = []
+        limit = 45 #lets test when bresenham works partially
         for i, rng in enumerate(data.ranges):
+            #if i > limit: break
             is_obs = False if rng == float('inf') else True
-            if not is_obs:
-                rng = data.range_max
+            if not is_obs: rng = data.range_max
             end_pos = map(lambda x, y: int(x + y), robot_pos,
                           polar_to_geom(i + degrees(self.global_yaw),
                                         rng / self.RESOLUTION))  # translation 2 robot_pos
