@@ -27,7 +27,9 @@ def clean_path(path):
     return new_path
 
 def best_first_search(intMap, start, end, free_space):
-
+    free_space = int(free_space)
+    len_x, len_y = np.shape(intMap)
+    print(len_x, len_y)
     START_POINT = {'x':start[0], 'y':start[1]}
     END_POINT = {'x':end[0], 'y':end[1]}
     #self.free_space = free_space
@@ -59,68 +61,76 @@ def best_first_search(intMap, start, end, free_space):
     def add_checkPoints(x, y):
         # Anhade un checkpoints alrededor del punto actual
         # left
-        if intMap[x][y - 1] == free_space:
-            newCheckpoint = (x, y - 1)
-            if newCheckpoint not in checkPoints:    # Se asegura de que no se repita en la lista
-                checkPoints.append(newCheckpoint)
-                pathPoints.append(newCheckpoint)
-                parentPoints.append((x, y))
+        if 0 <= x < len_x and 0 <= y - 1 < len_y :
+            if intMap[x][y - 1] == free_space:
+                newCheckpoint = (x, y - 1)
+                if newCheckpoint not in checkPoints:    # Se asegura de que no se repita en la lista
+                    checkPoints.append(newCheckpoint)
+                    pathPoints.append(newCheckpoint)
+                    parentPoints.append((x, y))
         
         # up
-        if intMap[x - 1][y] == free_space:
-            newCheckpoint = (x - 1, y)
-            if newCheckpoint not in checkPoints:
-                checkPoints.append(newCheckpoint)
-                pathPoints.append(newCheckpoint)
-                parentPoints.append((x, y))
+        if 0 <= x - 1 < len_x and 0 <= y < len_y :
+            if intMap[x - 1][y] == free_space:
+                newCheckpoint = (x - 1, y)
+                if newCheckpoint not in checkPoints:
+                    checkPoints.append(newCheckpoint)
+                    pathPoints.append(newCheckpoint)
+                    parentPoints.append((x, y))
 
         # right
-        if intMap[x][y + 1] == free_space:
-            newCheckpoint = (x, y + 1)
-            if newCheckpoint not in checkPoints:
-                checkPoints.append(newCheckpoint)
-                pathPoints.append(newCheckpoint)
-                parentPoints.append((x, y))
+        if 0 <= x < len_x and 0 <= y + 1 < len_y :
+            if intMap[x][y + 1] == free_space:
+                newCheckpoint = (x, y + 1)
+                if newCheckpoint not in checkPoints:
+                    checkPoints.append(newCheckpoint)
+                    pathPoints.append(newCheckpoint)
+                    parentPoints.append((x, y))
         
         # down
-        if intMap[x + 1][y] == free_space:
-            newCheckpoint = (x + 1, y)
-            if newCheckpoint not in checkPoints:
-                checkPoints.append(newCheckpoint)
-                pathPoints.append(newCheckpoint)
-                parentPoints.append((x, y))
+        if 0 <= x + 1 < len_x and 0 <= y < len_y :
+            if intMap[x + 1][y] == free_space:
+                newCheckpoint = (x + 1, y)
+                if newCheckpoint not in checkPoints:
+                    checkPoints.append(newCheckpoint)
+                    pathPoints.append(newCheckpoint)
+                    parentPoints.append((x, y))
         
         # up-left
-        if intMap[x - 1][y - 1] == free_space:
-            newCheckpoint = (x - 1, y - 1)
-            if newCheckpoint not in checkPoints:
-                checkPoints.append(newCheckpoint)
-                pathPoints.append(newCheckpoint)
-                parentPoints.append((x, y))
+        if 0 <= x - 1 < len_x and 0 <= y - 1 < len_y:
+            if intMap[x - 1][y - 1] == free_space:
+                newCheckpoint = (x - 1, y - 1)
+                if newCheckpoint not in checkPoints:
+                    checkPoints.append(newCheckpoint)
+                    pathPoints.append(newCheckpoint)
+                    parentPoints.append((x, y))
 
         # up-right
-        if intMap[x - 1][y + 1] == free_space:
-            newCheckpoint = (x - 1, y + 1)
-            if newCheckpoint not in checkPoints:
-                checkPoints.append(newCheckpoint)
-                pathPoints.append(newCheckpoint)
-                parentPoints.append((x, y))
+        if 0 <= x - 1 < len_x and 0 <= y + 1 < len_y :
+            if intMap[x - 1][y + 1] == free_space:
+                newCheckpoint = (x - 1, y + 1)
+                if newCheckpoint not in checkPoints:
+                    checkPoints.append(newCheckpoint)
+                    pathPoints.append(newCheckpoint)
+                    parentPoints.append((x, y))
 
         # down-left
-        if intMap[x + 1][y - 1] == free_space:
-            newCheckpoint = (x + 1, y - 1)
-            if newCheckpoint not in checkPoints:
-                checkPoints.append(newCheckpoint)
-                pathPoints.append(newCheckpoint)
-                parentPoints.append((x, y))
+        if 0 <= x + 1 < len_x and 0 <= y - 1 < len_y :
+            if intMap[x + 1][y - 1] == free_space:
+                newCheckpoint = (x + 1, y - 1)
+                if newCheckpoint not in checkPoints:
+                    checkPoints.append(newCheckpoint)
+                    pathPoints.append(newCheckpoint)
+                    parentPoints.append((x, y))
 
         # down-right
-        if intMap[x + 1][y + 1] == free_space:
-            newCheckpoint = (x + 1, y + 1)
-            if newCheckpoint not in checkPoints:
-                checkPoints.append(newCheckpoint)
-                pathPoints.append(newCheckpoint)
-                parentPoints.append((x, y))
+        if 0 <= x + 1 < len_x and 0 <= y + 1 < len_y :
+            if intMap[x + 1][y + 1] == free_space:
+                newCheckpoint = (x + 1, y + 1)
+                if newCheckpoint not in checkPoints:
+                    checkPoints.append(newCheckpoint)
+                    pathPoints.append(newCheckpoint)
+                    parentPoints.append((x, y))
         
         # Borra el punto actual en caso de que estuviese en los checkpoints
         if (x, y) in checkPoints:
@@ -143,7 +153,7 @@ def best_first_search(intMap, start, end, free_space):
         # Intenta buscar el camino directo hacia la meta
         while yesExitX or yesExitY:
             # Avanzar en X
-            if (END_POINT['x'] - nextPoint['x'] != free_space):
+            if (END_POINT['x'] - nextPoint['x'] != 0):
                 directionX = int((END_POINT['x'] - nextPoint['x'])/abs(END_POINT['x'] - nextPoint['x'])) # Determinar la direccion en X
                 if intMap[nextPoint['x'] + directionX][nextPoint['y']] == free_space:
                     nextPoint['x'] = nextPoint['x'] + directionX
@@ -162,7 +172,7 @@ def best_first_search(intMap, start, end, free_space):
                 break
             
             # Avanzar en Y
-            if (END_POINT['y'] - nextPoint['y'] != free_space):
+            if (END_POINT['y'] - nextPoint['y'] != 0):
                 directionY = int((END_POINT['y'] - nextPoint['y'])/abs(END_POINT['y'] - nextPoint['y'])) # Determinar la direccion en Y
                 if intMap[nextPoint['x']][nextPoint['y'] + directionY] == free_space:
                     nextPoint['y'] = nextPoint['y'] + directionY
@@ -224,7 +234,7 @@ if __name__ == "__main__":
                     [1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.],
                     [1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]])
     
-    start = (1,1)
-    end = (8,1)
-    path = best_first_search(img, start, end, 0)
+    start = (1,2)
+    end = (10,10)
+    path = best_first_search(img, start, end, 1)
     print(path)
