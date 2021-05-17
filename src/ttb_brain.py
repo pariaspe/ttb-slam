@@ -4,6 +4,7 @@ from nav_msgs.srv import SetMap, GetPlan
 from geometry_msgs.msg import PoseWithCovarianceStamped, PoseStamped
 
 from explorer import Explorer
+import bug_nav
 
 MAP = OccupancyGrid()
 
@@ -26,8 +27,9 @@ def main():
 
     sub = rospy.Subscriber("/my_map", OccupancyGrid, my_map)
 
-    explorer = Explorer()
-    explorer.do_bump_go(timeout=60)
+    #explorer = Explorer()
+    #explorer.do_bump_go(timeout=60)
+    bug_nav.main()
 
     resp = set_map_client(MAP, PoseWithCovarianceStamped())
     print(resp)

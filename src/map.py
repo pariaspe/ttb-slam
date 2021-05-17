@@ -7,8 +7,59 @@ from math import pi
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
-from planner import generate_voronoi
+#from planner import generate_voronoi
 
+def generate_voronoi(original_img):
+    """
+    Loads a binary map and returns the voronoi representation
+    :param original_img:
+    :return:
+    """
+
+    # Load map as an image
+    ret, original_img = cv2.threshold(original_img, 0, 1, cv2.THRESH_BINARY_INV)
+
+    # Resize the image to improve voronoi precision
+    mult = 10
+    dim = (original_img.shape[1] * mult, original_img.shape[0] * mult)
+    original_img = cv2.resize(original_img, dim, interpolation = cv2.INTER_AREA)
+
+    img = original_img.copy()
+
+    size = np.size(img)
+    skel = np.zeros(img.shape, img.dtype)
+
+    # element = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(15,15))  # Element for morph transformations
+    # img = cv2.erode(img, element)
+
+    element = cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3))  # Element for morph transformations
+    done = False
+
+    # Skelitization
+    while not done:
+        eroded = cv2.erode(img, element)
+        temp = cv2.dilate(eroded, element)
+        temp = cv2.subtract(img, temp)
+        skel = cv2.bitwise_or(skel, temp)
+        img = eroded.copy()
+
+        # Stop when the image is fully eroded
+        zeros = size - cv2.countNonZero(img)
+        if zeros == size:
+            done = True
+
+    # Image showing
+
+    # cv2.imshow("skel",skel)
+    # cv2.imshow("image", original_img)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
+
+    # Free spaces = 0
+    ret, final_img = cv2.threshold(skel, 0, 1, cv2.THRESH_BINARY_INV)
+    plt.imshow(final_img, cmap='Greys', interpolation='nearest')
+    plt.savefig('Generated/voronoi.png')
+    return final_img
 
 class MyMap:
     def __init__(self, grid=[],  resolution=0):
@@ -60,7 +111,7 @@ class MyMap:
         self._resolution = msg.info.resolution
         self._width = msg.info.width
         self._height = msg.info.height
-        self._grid = np.reshape(np.array(msg.data), [len(msg.data) / self._width, len(msg.data) / self._height])
+        self._grid = np.reshape(np.array(msg.data), [int(len(msg.data)) / self._width, int(len(msg.data)) / self._height])
 
     @staticmethod
     def occupancy_to_binary(grid):
@@ -73,6 +124,22 @@ class MyMap:
         # binary_grid = binary_grid / 100
         print(binary_grid)
         return binary_grid
+
+    @staticmethod    
+    def reduce_resolution(grid, resolution, binary_full_grid):
+            """
+            
+            :param grid: occupancy grid
+            :param binary_full_grid: binary grid without downscaling
+            :return:
+            """
+            new_shape = int(grid.shape[0]/resolution), int(grid.shape[1]/resolution)
+            new_grid = np.copy(binary_full_grid)
+            sh = new_shape[0], grid.shape[0]//new_shape[0], new_shape[1], grid.shape[1]//new_shape[1]
+            new_grid = new_grid.reshape(sh).mean(-1).mean(1)
+            new_grid[new_grid > 0.2] = 1
+            new_grid[new_grid <= 0.2] = 0
+            return np.rint(new_grid)
 
     @staticmethod
     def downsample_grid(grid, resolution):
@@ -118,10 +185,11 @@ class MyMap:
 
     def run(self):
         binary_map = self.occupancy_to_binary()
-        binary_map = self.reduce_resolution(binary_map)
+        binary_map = self.reduce_resolution(binary_map) #esta funcion no existe, la incluyo, downsample no se si se usa
         self.plotter(binary_map)
         binary_big = self.upscale(binary_map, 4)
-        generate_voronoi(binary_big)
+        voronoi_map = generate_voronoi(binary_big)
+        return voronoi_map
 
 
 # for script testing

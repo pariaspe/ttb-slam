@@ -11,59 +11,59 @@ import time
 
 from greedy_navigator import best_first_search
 from map import MyMap
+from map import generate_voronoi
+import map
+# def generate_voronoi(original_img):
+#     """
+#     Loads a binary map and returns the voronoi representation
+#     :param original_img:
+#     :return:
+#     """
 
+#     # Load map as an image
+#     ret, original_img = cv2.threshold(original_img, 0, 1, cv2.THRESH_BINARY_INV)
 
-def generate_voronoi(original_img):
-    """
-    Loads a binary map and returns the voronoi representation
-    :param original_img:
-    :return:
-    """
+#     # Resize the image to improve voronoi precision
+#     mult = 10
+#     dim = (original_img.shape[1] * mult, original_img.shape[0] * mult)
+#     original_img = cv2.resize(original_img, dim, interpolation = cv2.INTER_AREA)
 
-    # Load map as an image
-    ret, original_img = cv2.threshold(original_img, 0, 1, cv2.THRESH_BINARY_INV)
+#     img = original_img.copy()
 
-    # Resize the image to improve voronoi precision
-    mult = 10
-    dim = (original_img.shape[1] * mult, original_img.shape[0] * mult)
-    original_img = cv2.resize(original_img, dim, interpolation = cv2.INTER_AREA)
+#     size = np.size(img)
+#     skel = np.zeros(img.shape, img.dtype)
 
-    img = original_img.copy()
+#     # element = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(15,15))  # Element for morph transformations
+#     # img = cv2.erode(img, element)
 
-    size = np.size(img)
-    skel = np.zeros(img.shape, img.dtype)
+#     element = cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3))  # Element for morph transformations
+#     done = False
 
-    # element = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(15,15))  # Element for morph transformations
-    # img = cv2.erode(img, element)
+#     # Skelitization
+#     while not done:
+#         eroded = cv2.erode(img, element)
+#         temp = cv2.dilate(eroded, element)
+#         temp = cv2.subtract(img, temp)
+#         skel = cv2.bitwise_or(skel, temp)
+#         img = eroded.copy()
 
-    element = cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3))  # Element for morph transformations
-    done = False
+#         # Stop when the image is fully eroded
+#         zeros = size - cv2.countNonZero(img)
+#         if zeros == size:
+#             done = True
 
-    # Skelitization
-    while not done:
-        eroded = cv2.erode(img, element)
-        temp = cv2.dilate(eroded, element)
-        temp = cv2.subtract(img, temp)
-        skel = cv2.bitwise_or(skel, temp)
-        img = eroded.copy()
+#     # Image showing
 
-        # Stop when the image is fully eroded
-        zeros = size - cv2.countNonZero(img)
-        if zeros == size:
-            done = True
+#     # cv2.imshow("skel",skel)
+#     # cv2.imshow("image", original_img)
+#     # cv2.waitKey(0)
+#     # cv2.destroyAllWindows()
 
-    # Image showing
-
-    # cv2.imshow("skel",skel)
-    # cv2.imshow("image", original_img)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
-
-    # Free spaces = 0
-    ret, final_img = cv2.threshold(skel, 0, 1, cv2.THRESH_BINARY_INV)
-    plt.imshow(final_img, cmap='Greys', interpolation='nearest')
-    plt.savefig('Generated/voronoi.png')
-    return final_img
+#     # Free spaces = 0
+#     ret, final_img = cv2.threshold(skel, 0, 1, cv2.THRESH_BINARY_INV)
+#     plt.imshow(final_img, cmap='Greys', interpolation='nearest')
+#     plt.savefig('Generated/voronoi.png')
+#     return final_img
 
 
 class Planner:
@@ -87,7 +87,8 @@ class Planner:
         cv2.imshow("Map BW", MyMap.to_img(map_.grid))
         cv2.waitKey(0)
 
-        voronoi_graph = generate_voronoi(map_.grid)
+        voronoi_graph = map_.run()
+        print(voronoi_graph)
         path_list = best_first_search(voronoi_graph,
                                       (start.pose.position.x, start.pose.position.y),
                                       (end.pose.position.x, end.pose.position.y), 0)

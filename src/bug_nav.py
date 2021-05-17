@@ -4,6 +4,7 @@ import random
 import tf
 import math
 from nav_msgs.msg import OccupancyGrid
+import numpy as np
 
 RATE = 0.02
 
@@ -74,6 +75,35 @@ def rotate_against_wall(turtle, angle, direction):
             if turtle_orientation > 280:
                 turtle_orientation -= 360
         
+def map_connectivity(grid):
+    finished = True
+    len_x, len_y = np.shape(grid)
+    list_of_zeros = np.where(grid == 0)
+    for a in list_of_zeros:
+        x = list_of_zeros[a,0]
+        y = list_of_zeros[a,1]
+        
+        if x > 0:
+            if grid[x-1, y] == -1:
+                finished = False
+                print('map is not complete')
+                return finished
+        if x < len_x - 1:
+            if grid[x+1, y] == -1:
+                finished = False
+                print('map is not complete')
+                return finished
+        if y > 0:
+            if grid[x, y-1] == -1:
+                finished = False
+                print('map is not complete')
+                return finished
+        if y < len_y - 1:
+            if grid[x, y+1] == -1:
+                finished = False
+                print('map is not complete')
+                return finished
+        return finished
 
 
 def main():
@@ -131,8 +161,14 @@ def main():
             time.sleep(3)
             
         
-        if timer > 1000:     # Little delay to give time to move from original position
+        if timer > 60:     # Little delay to give time to move from original position
+            # Check if map is completed, if not, add 60s exploration
             # Check whether the ttb arrived to the initial position
+            map_finished = map_connectivity()
+            if map_finished:
+                return map_finished
+            else:
+                timer = 0
             current_position = turtle.get_estimated_pose().position
             if abs(current_position.y - initial_position.y) < position_error and abs(current_position.x - initial_position.x) < position_error:
                 turtle.stop()
@@ -143,6 +179,6 @@ def main():
 
     print("Exploration Finished")
     print('Final position is: \n',current_position)
-
+    # return map_finished
 if __name__ == "__main__":
     main()
