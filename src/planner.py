@@ -38,23 +38,27 @@ class Planner:
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-        free_points = [voronoi_graph == 0]  # Points in white in the voronoi
-        min_start = 10
-        min_end = 10
+        free_points = np.transpose(np.where(voronoi_graph == 0))  # Points in white in the voronoi
+        print(free_points)
+        min_start = 100
+        min_end = 100
         # Get the closest point in the graph for start and end
         for point in free_points:
             tmp_start = (abs(point[0] - start.pose.position.x) + abs(point[1] - start.pose.position.y))
             tmp_end = (abs(point[0] - end.pose.position.x) + abs(point[1] - end.pose.position.y))
             if tmp_start < min_start:
                 min_start = tmp_start
+                start_point = point
             if tmp_end < min_end:
                 min_end = tmp_end
+                end_point = point
+        print(min_start, min_end)
         path_list = best_first_search(voronoi_graph,
-                                      (min_start[0], min_start[1]),
-                                      (min_end[0], min_end[1]), 0)
+                                      (start_point[0], start_point[1]),
+                                      (end_point[0], end_point[1]), 0)
         path_list.append([end.pose.position.x, end.pose.position.y])
         path_list.insert(0, [start.pose.position.x, start.pose.position.y])
-
+        print("resuelto")
         path = Path()
         for p in path_list:
             point = PoseStamped()
