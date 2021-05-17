@@ -216,7 +216,7 @@ def best_first_search(intMap, start, end, free_space):
     #plt.ioff()
     #plt.show()
 
-    found_path = np.flip(clean_path(found_path))
+    found_path = np.flipud(clean_path(found_path))
 
     return found_path
 

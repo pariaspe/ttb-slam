@@ -17,25 +17,25 @@ def my_map(data):
 def main():
     print("Brain started")
 
+    # Waiting for Map Manager
+    rospy.wait_for_service("/my_map/set")
+    set_map_client = rospy.ServiceProxy("/my_map/set", SetMap)
+
+    # Waiting for Planner
+    rospy.wait_for_service("/planner/path/get")
+    get_path = rospy.ServiceProxy("/planner/path/get", GetPlan)
+
+    sub = rospy.Subscriber("/my_map", OccupancyGrid, my_map)
+
     print("Do you want to explore a new map)[Y/n]")
-    newMap = input()
+    newMap = raw_input()
 
     if newMap:
-        # Waiting for Map Manager
-        rospy.wait_for_service("/my_map/set")
-        set_map_client = rospy.ServiceProxy("/my_map/set", SetMap)
-
-        # Waiting for Planner
-        rospy.wait_for_service("/planner/path/get")
-        get_path = rospy.ServiceProxy("/planner/path/get", GetPlan)
-
-        sub = rospy.Subscriber("/my_map", OccupancyGrid, my_map)
-
-        #bump and go navigation
+        # bump and go navigation
         explorer = Explorer()
         explorer.do_bump_go(timeout=20)
 
-        #bug navigation with connectivity detection
+        # bug navigation with connectivity detection
         map_finished = False
         timeout_counter = 0
         while not map_finished and timeout_counter < 4:
@@ -51,13 +51,21 @@ def main():
     else:
         explorer = Explorer()
 
+        # # Load explored map
+        # try:
+        #     explored_map = np.genfromtxt("Generated/explored_map.csv", delimiter=',')
+        # except ValueError:
+        #     print("There is no map to load")
+        #
+        # set_map_client()
+
     start = PoseStamped()
     start.pose.position.x = 2.5
     start.pose.position.y = 2.5
     goal = PoseStamped()
     goal.pose.position.x = 7.5
     goal.pose.position.y = 5.5
-    path = get_path(start, goal, 0.001) # Añadir el true para new en planner.py
+    path = get_path(start, goal, 0.001)
 
     explorer.follow_path(path)
 
