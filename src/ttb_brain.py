@@ -1,17 +1,23 @@
 import rospy
 from nav_msgs.msg import OccupancyGrid
 from nav_msgs.srv import SetMap, GetPlan
-from geometry_msgs.msg import PoseWithCovarianceStamped, PoseStamped
+from geometry_msgs.msg import PoseWithCovarianceStamped, PoseStamped, PointStamped
 
 from explorer import Explorer
 import bug_nav
 
 MAP = OccupancyGrid()
+goal_point = PointStamped()
+goal_point.point.x = 0
 
 
 def my_map(data):
     global MAP
     MAP = data
+
+def getPoint(data):
+    global goal_point
+    goal_point = data
 
 
 def main():
@@ -26,9 +32,14 @@ def main():
     get_path = rospy.ServiceProxy("/planner/path/get", GetPlan)
 
     sub = rospy.Subscriber("/my_map", OccupancyGrid, my_map)
+    sub_point = rospy.Subscriber("/clicked_point", PointStamped, getPoint)
 
     print("Do you want to explore a new map)[Y/n]")
-    newMap = raw_input()
+    anw = input()
+    if anw == 'n':
+        newMap = False
+    else:
+        newMap = True
 
     if newMap:
         # bump and go navigation
@@ -63,8 +74,11 @@ def main():
     start.pose.position.x = 2.5
     start.pose.position.y = 2.5
     goal = PoseStamped()
-    goal.pose.position.x = 7.5
-    goal.pose.position.y = 5.5
+    while 1:
+        goal.pose.position.x = goal_point.point.x
+        goal.pose.position.y = goal_point.point.y
+        if goal_point.point.x != 0:
+            break
     path = get_path(start, goal, 0.001)
 
     explorer.follow_path(path)
