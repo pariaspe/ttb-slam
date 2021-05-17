@@ -27,18 +27,28 @@ class Planner:
         self.is_path = False
         self.path_timer = rospy.Timer(rospy.Duration(secs=1), self.publish_path)
 
-    def get_path(self, req):
+    def get_path(self, req, new=True):
         start = req.start
         end = req.goal
         tolerance = req.tolerance
 
-        resp = self.map_client()
-        map_ = MyMap()
-        map_.from_msg(resp.map)
+        # New map exploration
+        if new:
+            resp = self.map_client()
+            map_ = MyMap()
+            map_.from_msg(resp.map)
 
-        my_down = MyMap(grid=map_.downscale(map_.grid, 20), resolution=1 / 20)
-        voronoi_graph = generate_voronoi(my_down.binary)
-        cv2.imshow("Map BW", map_.to_img(True))
+            my_down = MyMap(grid=map_.downscale(map_.grid, 20), resolution=1 / 20)
+            explored_map = my_down.binary
+            cv2.imshow("Map BW", map_.to_img(True))
+        # Load explored map
+        else:
+            try:
+                explored_map = np.genfromtxt("Generated/explored_map.csv", delimiter=',')
+            except ValueError:
+                print("There is no map to load")
+
+        voronoi_graph = generate_voronoi(explored_map)
         cv2.imshow("Voronoi", voronoi_graph)
         cv2.waitKey(0)
         cv2.destroyAllWindows()

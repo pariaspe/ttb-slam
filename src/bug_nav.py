@@ -64,6 +64,8 @@ def rotate_against_wall(turtle, angle, direction):
 # is under some threshold, we suppose the map is finished        
 def map_connectivity(grid):
     finished = True
+    adyacency_count = 0
+    threshold = 10
     len_x, len_y = np.shape(grid)
     list_of_zeros = np.transpose(np.where(grid == 0))
     for a in list_of_zeros:
@@ -73,24 +75,32 @@ def map_connectivity(grid):
         #check adyacent positions
         if x > 0:
             if grid[x-1, y] == -1:
-                finished = False
-                print('map is not complete')
-                return finished
+                adyacency_count += 1
+                if adyacency_count >= threshold:
+                    finished = False
+                    print('map is not complete')
+                    return finished
         if x < len_x - 1:
             if grid[x+1, y] == -1:
-                finished = False
-                print('map is not complete')
-                return finished
+                adyacency_count += 1
+                if adyacency_count >= threshold:
+                    finished = False
+                    print('map is not complete')
+                    return finished
         if y > 0:
             if grid[x, y-1] == -1:
-                finished = False
-                print('map is not complete')
-                return finished
+                adyacency_count += 1
+                if adyacency_count >= threshold:
+                    finished = False
+                    print('map is not complete')
+                    return finished
         if y < len_y - 1:
             if grid[x, y+1] == -1:
-                finished = False
-                print('map is not complete')
-                return finished
+                adyacency_count += 1
+                if adyacency_count >= threshold:
+                    finished = False
+                    print('map is not complete')
+                    return finished
         return finished
 
 
@@ -143,20 +153,15 @@ def main():
             time.sleep(3)
             
         
-        #if timer > 1000:     # Little delay to give time to move from original position
-        #    # Check if map is completed, if not, add 60s exploration
-        #    # Check whether the ttb arrived to the initial position
-        #    map_finished = map_connectivity()
-        #    if map_finished:
-        #        return map_finished
-        #    else:
-        #        timer = 0
-        #    current_position = turtle.get_estimated_pose().position
-        #    if abs(current_position.y - initial_position.y) < position_error and abs(current_position.x - initial_position.x) < position_error:
-        #        turtle.stop()
-        #        break
-        #    timer = 100
-        #timer +=1
+        if timer > 60:
+            # Check if map is completed, if not, add 60s exploration
+            # Check whether the ttb arrived to the initial position
+            #stop robot!!!!
+            map_finished = map_connectivity()
+            if map_finished:
+                return map_finished
+            else:
+                timer = 0
 
 
     print("Exploration Finished")
