@@ -39,7 +39,6 @@ class Planner:
         cv2.destroyAllWindows()
 
         free_points = np.transpose(np.where(voronoi_graph == 0))  # Points in white in the voronoi
-        print(free_points)
         min_start = 100
         min_end = 100
         # Get the closest point in the graph for start and end
@@ -52,7 +51,6 @@ class Planner:
             if tmp_end < min_end:
                 min_end = tmp_end
                 end_point = point
-        print(min_start, min_end)
         path_list = best_first_search(voronoi_graph,
                                       (start_point[0], start_point[1]),
                                       (end_point[0], end_point[1]), 0)

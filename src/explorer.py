@@ -48,3 +48,9 @@ class Explorer:
 
             time.sleep(self.RATE)
         self.turtle.stop()
+
+    def follow_path(self, path):
+        for pose in path.plan.poses:
+            print("Going to", pose.pose.position.x, pose.pose.position.y)
+            self.turtle.set_pos(pose.pose.position.x, pose.pose.position.y)
+        self.turtle.stop()

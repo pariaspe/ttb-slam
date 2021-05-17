@@ -38,11 +38,11 @@ def main():
     start.pose.position.x = 2.5
     start.pose.position.y = 2.5
     goal = PoseStamped()
-    goal.pose.position.x = 7.5
-    goal.pose.position.y = 2.5
+    goal.pose.position.x = 2.5
+    goal.pose.position.y = 5.5
     path = get_path(start, goal, 0.001)
 
-    print(path)
+    explorer.follow_path(path)
 
     print("Brain ended")
     rospy.spin()
