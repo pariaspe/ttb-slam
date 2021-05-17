@@ -68,7 +68,9 @@ class Planner:
         path_list.append([end.pose.position.x, end.pose.position.y])
         path_list.insert(0, [start.pose.position.x, start.pose.position.y])
 
+        self.is_path = True
         self.path = Path()
+        self.path.header.frame_id = "map"
         for p in path_list:
             point = PoseStamped()
             point.pose.position.x = p[0]
@@ -78,7 +80,7 @@ class Planner:
 
     def publish_path(self, event):
         if self.is_path:
-            self.path_pb.publish()
+            self.path_pb.publish(self.path)
 
 
 if __name__ == "__main__":
