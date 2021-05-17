@@ -27,9 +27,20 @@ def main():
 
     sub = rospy.Subscriber("/my_map", OccupancyGrid, my_map)
 
+     #bump and go navigation
     explorer = Explorer()
     explorer.do_bump_go(timeout=20)
-    #bug_nav.main()
+
+    #bug navigation with connectivity detection
+    map_finished = False
+    timeout_counter = 0
+    while not map_finished and timeout_counter < 4:
+        map_finished = bug_nav.main()
+        timeout_counter += 1
+
+    if map_finished: print('map has been completed')
+    else: print('map is not totally complete')
+
     print('exploration finished')
     resp = set_map_client(MAP, PoseWithCovarianceStamped())
     print(resp)
@@ -45,7 +56,7 @@ def main():
     explorer.follow_path(path)
 
     print("Brain ended")
-    rospy.spin()
+
 
 
 if __name__ == "__main__":
