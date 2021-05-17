@@ -6,13 +6,10 @@ from geometry_msgs.msg import PoseStamped
 
 import numpy as np
 import cv2
-import matplotlib.pyplot as plt
-import time
 
 from greedy_navigator import best_first_search
 from map import MyMap
 from map import generate_voronoi
-import map
 
 
 class Planner:
@@ -35,10 +32,8 @@ class Planner:
         map_.from_msg(resp.map)
 
         my_down = MyMap(grid=map_.downscale(map_.grid, 20), resolution=1 / 20)
-        rescaled = my_down.upscale(my_down.binary, 4)
-        voronoi_graph = generate_voronoi(rescaled)
+        voronoi_graph = generate_voronoi(my_down.binary)
         cv2.imshow("Map BW", map_.to_img(True))
-        cv2.imshow("L", rescaled)
         cv2.imshow("Voronoi", voronoi_graph)
         cv2.waitKey(0)
         cv2.destroyAllWindows()

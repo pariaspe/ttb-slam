@@ -58,8 +58,8 @@ def generate_voronoi(original_img):
 
     # Free spaces = 0
     ret, final_img = cv2.threshold(skel, 0, 1, cv2.THRESH_BINARY_INV)
-    plt.imshow(final_img, cmap='Greys', interpolation='nearest')
-    plt.savefig('Generated/voronoi.png')
+    # plt.imshow(final_img, cmap='Greys', interpolation='nearest')
+    # plt.savefig('Generated/voronoi.png')
     return final_img
 
 
@@ -224,10 +224,9 @@ if __name__ == "__main__":
 
 
     my_map = MyMap(grid=img, resolution=1)
-    my_map.run()
     # my_binary = MyMap(grid=my_map.binary, resolution=1)
     my_down = MyMap(grid=my_map.downscale(my_map.grid, 1), resolution=1)
-    rescaled = my_down.upscale(my_down.binary, 4)
+    # rescaled = my_down.upscale(my_down.binary, 4)
 
     # print(my_map)
     # print("----------")
@@ -240,5 +239,5 @@ if __name__ == "__main__":
 
     # cv2.imshow("Map", my_map.to_img())
     # cv2.imshow("Factor", MyMap.grid_to_img(rescaled))
-    cv2.imshow("Voronoi", generate_voronoi(rescaled))
+    cv2.imshow("Voronoi", generate_voronoi(my_down.binary))
     cv2.waitKey(0)
