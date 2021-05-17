@@ -1,10 +1,13 @@
 import time
+from map import MyMap
 from ttb_slam.turtlebot_control import MyTurtlebot
 import random
 import tf
 import math
 from nav_msgs.msg import OccupancyGrid
+from nav_msgs.srv import GetMap
 import numpy as np
+import rospy
 
 RATE = 0.02
 
@@ -152,20 +155,22 @@ def main():
             turtle.set_vel(vx=0.3)      # Advance to see where the next wall is
             time.sleep(3)
             
-        
         if timer > 60:
+            turtle.stop()
+
+            rospy.wait_for_service("my_map/get")
+            map_client = rospy.ServiceProxy("my_map/get", GetMap)
+            resp = map_client()
+            map_=MyMap()
+            grid_to_evaluate = map_.from_msg(resp.map)
             # Check if map is completed, if not, add 60s exploration
             # Check whether the ttb arrived to the initial position
             #stop robot!!!!
-            map_finished = map_connectivity()
+            map_finished = map_connectivity(grid_to_evaluate)
             if map_finished:
                 return map_finished
             else:
                 timer = 0
 
-
-    print("Exploration Finished")
-    #print('Final position is: \n',current_position)
-    # return map_finished
 if __name__ == "__main__":
     main()
