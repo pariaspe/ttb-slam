@@ -155,6 +155,7 @@ Visualization Manager:
     - Class: rviz/Path
       Name: Path
       Enabled: true
+      Topic: /my_path
       Unreliable: false
       Queue Size: 10
       Line Style: Lines
