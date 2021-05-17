@@ -3,11 +3,12 @@ from geometry_msgs.msg import Pose
 import tf
 
 import time
-from math import pi
+from math import pi, floor
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 #from planner import generate_voronoi
+
 
 def generate_voronoi(original_img):
     """
@@ -61,6 +62,7 @@ def generate_voronoi(original_img):
     plt.savefig('Generated/voronoi.png')
     return final_img
 
+
 class MyMap:
     def __init__(self, grid=[],  resolution=0):
         self._grid = np.array(grid, ndmin=2)
@@ -75,7 +77,6 @@ class MyMap:
 
     @property
     def binary(self):
-
         return self.occupancy_to_binary(self._grid)
 
     @property
@@ -118,41 +119,47 @@ class MyMap:
         """2D Numpy array filled with 0 (free-space) and 1 (obstacles/unknown)"""
         binary_grid = np.copy(grid)
         binary_grid[binary_grid < 0] = 100
-        binary_grid[binary_grid < 21] = 0
-        binary_grid[binary_grid > 20] = 1
+        binary_grid[binary_grid < 0.21] = 0
+        binary_grid[binary_grid > 0.20] = 1
         # binary_grid = binary_grid / 100
         print('binary_grid is returned')
         return binary_grid
 
     @staticmethod    
     def reduce_resolution(grid, resolution, binary_full_grid):
-            """
+        """
             
-            :param grid: occupancy grid
-            :param binary_full_grid: binary grid without downscaling
-            :return:
-            """
-            #multiply because this is grid resolution not binary map resolution as intended in original script
-            new_shape = int(grid.shape[0]*resolution), int(grid.shape[1]*resolution)
-            new_grid = np.copy(binary_full_grid)
-            sh = new_shape[0], grid.shape[0]//new_shape[0], new_shape[1], grid.shape[1]//new_shape[1]
-            new_grid = new_grid.reshape(sh).mean(-1).mean(1)
-            new_grid[new_grid > 0.2] = 1
-            new_grid[new_grid <= 0.2] = 0
-            print('binary_grid resolution is reduced')
-            return np.rint(new_grid)
+        :param grid: occupancy grid
+        :param binary_full_grid: binary grid without downscaling
+        :return:
+        """
+        # multiply because this is grid resolution not binary map resolution as intended in original script
+        new_shape = int(grid.shape[0]*resolution), int(grid.shape[1]*resolution)
+        new_grid = np.copy(binary_full_grid)
+        sh = new_shape[0], grid.shape[0]//new_shape[0], new_shape[1], grid.shape[1]//new_shape[1]
+        new_grid = new_grid.reshape(sh).mean(-1).mean(1)
+        new_grid[new_grid > 0.2] = 1
+        new_grid[new_grid <= 0.2] = 0
+        print('binary_grid resolution is reduced')
+        return np.rint(new_grid)
 
     @staticmethod
-    def downsample_grid(grid, resolution): #en principio esta funcion sobra
-        """Reduces grid resolution to a given one"""
-        new_shape = int(grid.shape[0] / resolution), int(grid.shape[1] / resolution)
+    def downscale(grid, factor):
+        """Reduces grid by a given factor"""
+        new_shape = int(grid.shape[0] / factor), int(grid.shape[1] / factor)
         sh = new_shape[0], grid.shape[0]//new_shape[0], new_shape[1], grid.shape[1]//new_shape[1]
         return np.reshape(grid, sh).mean(-1).mean(1)
 
+    def to_img(self, inverted=True):
+        return self.grid_to_img(self.grid, inverted)
+
     @staticmethod
-    def to_img(grid_):
-        img = np.array(grid_ * 255, dtype=np.uint8)
-        return cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 3, 0)
+    def grid_to_img(grid_, inverted=True):
+        if inverted:
+            img = np.array(255 - grid_ * 255, dtype=np.uint8).astype('uint8')
+        else:
+            img = np.array(grid_ * 255, dtype=np.uint8).astype('uint8')
+        return cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
 
     def __repr__(self):
         str_map = ""
@@ -180,8 +187,8 @@ class MyMap:
         #generate_voronoi(binary)
         #print('voronoi has been generated in plotter')
 
-    def upscale(self, binary, factor):
-        new_shape = np.shape(binary)
+    @staticmethod
+    def upscale(binary, factor):
         dimx, dimy = np.array(np.shape(binary)) * factor
         binary_big = cv2.resize(binary, dsize=(dimx, dimy), interpolation=cv2.INTER_CUBIC)
         plt.imshow(binary_big, cmap='Greys', interpolation='nearest')
@@ -203,14 +210,35 @@ if __name__ == "__main__":
     my_map = MyMap(grid=np.random.rand(1000, 1000)*100, resolution=1)
     # my_map = MyMap(grid=np.zeros(100), resolution=1)
 
-    my_binary = MyMap()
-    my_binary.from_msg(my_map.binary_msg)
+    img = np.array([[1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.],
+                    [1., 0., 0., 0., 0., 0., 0., 0., 1., 1., 1.],
+                    [1., 0., 0., 0., 0., 0., 0., 0., 1., 1., 1.],
+                    [1., 0., 0., 0., 0., 0., 0., 0., 1., 1., 1.],
+                    [1., 1., 1., 1., 1., 0., 0., 0., 1., 1., 1.],
+                    [1., 1., 1., 1., 1., 0., 0., 0., 1., 1., 1.],
+                    [1., 0., 0., 0., 0., 0., 0., 0., 1., 1., 1.],
+                    [1., 0., 0., 0., 0., 0., 0., 0., 1., 1., 1.],
+                    [1., 0., 0., 0., 0., 0., 0., 0., 1., 1., 1.],
+                    [1., 0., 0., 0., 0., 0., 0., 0., 1., 1., 1.],
+                    [1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]])
+
+
+    my_map = MyMap(grid=img, resolution=1)
+    my_map.run()
+    # my_binary = MyMap(grid=my_map.binary, resolution=1)
+    my_down = MyMap(grid=my_map.downscale(my_map.grid, 1), resolution=1)
+    rescaled = my_down.upscale(my_down.binary, 4)
 
     # print(my_map)
     # print("----------")
     # print(my_binary)
 
-    cv2.imshow("Map", MyMap.to_img(my_map.grid))
-    cv2.imshow("Binary", MyMap.to_img(my_binary.grid))
-    cv2.imshow("Downsample", MyMap.to_img(my_binary.downsample_grid(my_binary.grid, int(1/0.05))))
+    # plt.imshow(my_map.to_img(), cmap='Greys', interpolation='nearest')
+    # plt.imshow(my_binary.to_img(), cmap='Greys', interpolation='nearest')
+    # plt.imshow(MyMap.grid_to_img(rescaled), cmap='Greys', interpolation='nearest')
+    # plt.pause(0)
+
+    # cv2.imshow("Map", my_map.to_img())
+    # cv2.imshow("Factor", MyMap.grid_to_img(rescaled))
+    cv2.imshow("Voronoi", generate_voronoi(rescaled))
     cv2.waitKey(0)

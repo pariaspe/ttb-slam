@@ -14,13 +14,14 @@ from map import MyMap
 from map import generate_voronoi
 import map
 
+
 class Planner:
     def __init__(self):
         rospy.init_node("Planner")
         rospy.loginfo("Node initialized")
 
-        rospy.wait_for_service("my_map/binary/get")
-        self.map_client = rospy.ServiceProxy("my_map/binary/get", GetMap)
+        rospy.wait_for_service("my_map/get")
+        self.map_client = rospy.ServiceProxy("my_map/get", GetMap)
 
         self.path_srv = rospy.Service("planner/path/get", GetPlan, self.get_path)
 
@@ -32,10 +33,16 @@ class Planner:
         resp = self.map_client()
         map_ = MyMap()
         map_.from_msg(resp.map)
-        cv2.imshow("Map BW", MyMap.to_img(map_.grid))
+
+        my_down = MyMap(grid=map_.downscale(map_.grid, 20), resolution=1 / 20)
+        rescaled = my_down.upscale(my_down.binary, 4)
+        voronoi_graph = generate_voronoi(rescaled)
+        cv2.imshow("Map BW", map_.to_img(True))
+        cv2.imshow("L", rescaled)
+        cv2.imshow("Voronoi", voronoi_graph)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
-        voronoi_graph = map_.run()
+
         free_points = [voronoi_graph == 0]  # Points in white in the voronoi
         min_start = 10
         min_end = 10
@@ -52,6 +59,7 @@ class Planner:
                                       (min_end[0], min_end[1]), 0)
         path_list.append([end.pose.position.x, end.pose.position.y])
         path_list.insert(0, [start.pose.position.x, start.pose.position.y])
+
         path = Path()
         for p in path_list:
             point = PoseStamped()
