@@ -26,24 +26,6 @@ def remap_angle(angle):
     elif angle > 0:
         return 360 - angle
 
-def bug_initialization(turtle):
-    res = 2  # Resolution of the advancing angle
-    angle = 90      # Angle in which it is wanted to advance
-    wall_idx = 0
-    while wall_idx not in range(angle-res, angle + res + 1):
-        full_distances = turtle.get_all_dist()
-        wall_idx = detect_wall(full_distances)
-
-        if full_distances[wall_idx] == float('inf'):    # If the bot does not detect any wall, advance
-            turtle.set_vel(vx=0.3)
-            break
-        
-        turtle.set_vel(az=0.2)  # Rotate until parallel to the wall
-        time.sleep(0.05)
-    
-    print('Wall detected at',format(wall_idx))   #ROSINFO
-    turtle.stop()
-
 def calculate_wall_angle(full_distances, wall_angle):
     # Calculate the angle to the wall
     wall_side = math.sqrt(full_distances[wall_angle-15]**2 + full_distances[wall_angle]**2 - 2*full_distances[wall_angle-15]*full_distances[wall_angle]*math.cos(math.radians(15)))
@@ -120,15 +102,9 @@ def main():
     timer = 0
     position_error = 1
     wall_dist = 1
-    bug_initialized = False
     while turtle.is_running():
         pose = turtle.get_estimated_pose()
         full_distances = turtle.get_all_dist()      
-
-        # Conditions for a good initialization
-        if not bug_initialized:
-            bug_initialization(turtle)
-            bug_initialized = True
         
         turtle.set_vel(vx=0.3)
         time.sleep(0.05)
@@ -162,24 +138,24 @@ def main():
             time.sleep(3)
             
         
-        if timer > 60:     # Little delay to give time to move from original position
-            # Check if map is completed, if not, add 60s exploration
-            # Check whether the ttb arrived to the initial position
-            map_finished = map_connectivity()
-            if map_finished:
-                return map_finished
-            else:
-                timer = 0
-            current_position = turtle.get_estimated_pose().position
-            if abs(current_position.y - initial_position.y) < position_error and abs(current_position.x - initial_position.x) < position_error:
-                turtle.stop()
-                break
-            timer = 100
-        timer +=1
+        #if timer > 1000:     # Little delay to give time to move from original position
+        #    # Check if map is completed, if not, add 60s exploration
+        #    # Check whether the ttb arrived to the initial position
+        #    map_finished = map_connectivity()
+        #    if map_finished:
+        #        return map_finished
+        #    else:
+        #        timer = 0
+        #    current_position = turtle.get_estimated_pose().position
+        #    if abs(current_position.y - initial_position.y) < position_error and abs(current_position.x - initial_position.x) < position_error:
+        #        turtle.stop()
+        #        break
+        #    timer = 100
+        #timer +=1
 
 
     print("Exploration Finished")
-    print('Final position is: \n',current_position)
+    #print('Final position is: \n',current_position)
     # return map_finished
 if __name__ == "__main__":
     main()
