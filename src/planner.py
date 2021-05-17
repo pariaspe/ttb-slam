@@ -22,6 +22,11 @@ class Planner:
 
         self.path_srv = rospy.Service("planner/path/get", GetPlan, self.get_path)
 
+        self.path = Path()
+        self.path_pb = rospy.Publisher("my_path", Path, queue_size=1)
+        self.is_path = False
+        self.path_timer = rospy.Timer(rospy.Duration(secs=1), self.publish_path)
+
     def get_path(self, req):
         start = req.start
         end = req.goal
@@ -41,10 +46,13 @@ class Planner:
         free_points = np.transpose(np.where(voronoi_graph == 0))  # Points in white in the voronoi
         min_start = 100
         min_end = 100
+
+        # closest_start = min(free_points, key=lambda p: abs(p[0] - start.pose.position.x) + abs(p[1] - start.pose.position.y))
+        # closest_end = min(free_points, key=lambda p: abs(p[0] - end.pose.position.x) + abs(p[1] - end.pose.position.y))
         # Get the closest point in the graph for start and end
         for point in free_points:
-            tmp_start = (abs(point[0] - start.pose.position.x) + abs(point[1] - start.pose.position.y))
-            tmp_end = (abs(point[0] - end.pose.position.x) + abs(point[1] - end.pose.position.y))
+            tmp_start = (abs(point[0] - start.pose.position.x*10) + abs(point[1] - start.pose.position.y*10))
+            tmp_end = (abs(point[0] - end.pose.position.x*10) + abs(point[1] - end.pose.position.y*10))
             if tmp_start < min_start:
                 min_start = tmp_start
                 start_point = point
@@ -54,16 +62,21 @@ class Planner:
         path_list = best_first_search(voronoi_graph,
                                       (start_point[0], start_point[1]),
                                       (end_point[0], end_point[1]), 0)
+        path_list = list(map(lambda i: (float(i[0])/10, float(i[1])/10), path_list))
         path_list.append([end.pose.position.x, end.pose.position.y])
         path_list.insert(0, [start.pose.position.x, start.pose.position.y])
-        print("resuelto")
-        path = Path()
+
+        self.path = Path()
         for p in path_list:
             point = PoseStamped()
             point.pose.position.x = p[0]
             point.pose.position.y = p[1]
-            path.poses.append(point)
-        return path
+            self.path.poses.append(point)
+        return self.path
+
+    def publish_path(self):
+        if self.is_path:
+            self.path_pb.publish()
 
 
 if __name__ == "__main__":
