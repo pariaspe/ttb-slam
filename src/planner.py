@@ -85,13 +85,25 @@ class Planner:
         map_ = MyMap()
         map_.from_msg(resp.map)
         cv2.imshow("Map BW", MyMap.to_img(map_.grid))
-        #cv2.waitKey(0)
+        cv2.waitKey(0)
 
         voronoi_graph = map_.run()
-        print(voronoi_graph)
+        free_points = [voronoi_graph == 0]  # Points in white in the voronoi
+        min_start = 10
+        min_end = 10
+        # Get the closest point in the graph for start and end
+        for point in free_points:
+            tmp_start = (abs(point[0] - start.pose.position.x) + abs(point[1] - start.pose.position.y))
+            tmp_end = (abs(point[0] - end.pose.position.x) + abs(point[1] - end.pose.position.y))
+            if tmp_start < min_start:
+                min_start = tmp_start
+            if tmp_end < min_end:
+                min_end = tmp_end
         path_list = best_first_search(voronoi_graph,
-                                      (start.pose.position.x, start.pose.position.y),
-                                      (end.pose.position.x, end.pose.position.y), 0)
+                                      (min_start[0], min_start[1]),
+                                      (min_end[0], min_end[1]))
+        path_list.append([end.pose.position.x, end.pose.position.y])
+        path_list.insert(0, [start.pose.position.x, start.pose.position.y])
         path = Path()
         for p in path_list:
             point = PoseStamped()
