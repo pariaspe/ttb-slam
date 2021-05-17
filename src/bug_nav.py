@@ -56,7 +56,12 @@ def rotate_against_wall(turtle, angle, direction):
         elif initial_orientation - angle < 0:
             if turtle_orientation > 280:
                 turtle_orientation -= 360
-#necesitamos pasar el grid a la funcion        
+#necesitamos pasar el grid a la funcion
+# this function checks connectivity in free space, 
+# if there is unexplored space next to it, map is not finished
+# due to bad precision, some free spaces are behind walls
+# possible solution would be counting number of adyacencies and if value
+# is under some threshold, we suppose the map is finished        
 def map_connectivity(grid):
     finished = True
     len_x, len_y = np.shape(grid)

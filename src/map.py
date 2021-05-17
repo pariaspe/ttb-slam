@@ -111,18 +111,17 @@ class MyMap:
         self._resolution = msg.info.resolution
         self._width = msg.info.width
         self._height = msg.info.height
-        self._grid = np.reshape(np.array(msg.data), [int(len(msg.data)) / self._width, int(len(msg.data)) / self._height])
+        self._grid = np.reshape(np.array(msg.data), [int(len(msg.data) / self._width), int(len(msg.data) / self._height)])
 
     @staticmethod
     def occupancy_to_binary(grid):
         """2D Numpy array filled with 0 (free-space) and 1 (obstacles/unknown)"""
         binary_grid = np.copy(grid)
-        print(binary_grid)
         binary_grid[binary_grid < 0] = 100
         binary_grid[binary_grid < 21] = 0
         binary_grid[binary_grid > 20] = 1
         # binary_grid = binary_grid / 100
-        print(binary_grid)
+        print('binary_grid is returned')
         return binary_grid
 
     @staticmethod    
@@ -133,16 +132,23 @@ class MyMap:
             :param binary_full_grid: binary grid without downscaling
             :return:
             """
+            print('reduce resolution 1')
             new_shape = int(grid.shape[0]/resolution), int(grid.shape[1]/resolution)
+            print('reduce resolution 2')
             new_grid = np.copy(binary_full_grid)
+            print('reduce resolution 3')
             sh = new_shape[0], grid.shape[0]//new_shape[0], new_shape[1], grid.shape[1]//new_shape[1]
+            print('reduce resolution 4')
+            #error is here!!!!!!!!
             new_grid = new_grid.reshape(sh).mean(-1).mean(1)
+            print('reduce resolution 5')
             new_grid[new_grid > 0.2] = 1
             new_grid[new_grid <= 0.2] = 0
+            print('binary_grid resolution is reduced')
             return np.rint(new_grid)
 
     @staticmethod
-    def downsample_grid(grid, resolution):
+    def downsample_grid(grid, resolution): #en principio esta funcion sobra
         """Reduces grid resolution to a given one"""
         new_shape = int(grid.shape[0] / resolution), int(grid.shape[1] / resolution)
         sh = new_shape[0], grid.shape[0]//new_shape[0], new_shape[1], grid.shape[1]//new_shape[1]
@@ -171,9 +177,11 @@ class MyMap:
         # kernel = np.ones
         plt.imshow(binary, cmap='Greys', interpolation='nearest')
         plt.savefig('Generated/binary_map.png')
+        print('binary_grid has been generated')
         # binary_eroded = cv2.erode(binary)
         generate_voronoi(binary)
         np.savetxt("Generated/binary_map.csv", binary, delimiter=",")
+        print('voronoi has been generated in plotter')
 
     def upscale(self, binary, factor):
         new_shape = np.shape(binary)
@@ -189,6 +197,7 @@ class MyMap:
         self.plotter(binary_map)
         binary_big = self.upscale(binary_map, 4)
         voronoi_map = generate_voronoi(binary_big)
+        print('voronoi has been generated in run')
         return voronoi_map
 
 

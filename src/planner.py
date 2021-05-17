@@ -49,7 +49,7 @@ class Planner:
                 min_end = tmp_end
         path_list = best_first_search(voronoi_graph,
                                       (min_start[0], min_start[1]),
-                                      (min_end[0], min_end[1]))
+                                      (min_end[0], min_end[1]), 0)
         path_list.append([end.pose.position.x, end.pose.position.y])
         path_list.insert(0, [start.pose.position.x, start.pose.position.y])
         path = Path()

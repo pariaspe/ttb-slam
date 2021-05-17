@@ -30,7 +30,7 @@ def main():
     explorer = Explorer()
     explorer.do_bump_go(timeout=60)
     #bug_nav.main()
-
+    print('exploration finished')
     resp = set_map_client(MAP, PoseWithCovarianceStamped())
     print(resp)
 
