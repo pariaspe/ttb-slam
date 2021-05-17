@@ -3,6 +3,9 @@ from nav_msgs.msg import OccupancyGrid
 from nav_msgs.srv import SetMap, GetPlan
 from geometry_msgs.msg import PoseWithCovarianceStamped, PoseStamped, PointStamped
 
+import numpy as np
+
+from map import MyMap
 from explorer import Explorer
 import bug_nav
 
@@ -41,7 +44,7 @@ def main():
     else:
         newMap = True
 
-    if newMap:
+    if newMap == "Y":
         # bump and go navigation
         explorer = Explorer()
         explorer.do_bump_go(timeout=20)
@@ -62,13 +65,16 @@ def main():
     else:
         explorer = Explorer()
 
-        # # Load explored map
-        # try:
-        #     explored_map = np.genfromtxt("Generated/explored_map.csv", delimiter=',')
-        # except ValueError:
-        #     print("There is no map to load")
-        #
-        # set_map_client()
+        # Load explored map
+        try:
+            explored_map = np.genfromtxt("Generated/explored_map.csv", delimiter=',')
+            print(explored_map)
+        except ValueError:
+            print("There is no map to load")
+
+        map_ = MyMap(MyMap.upscale(explored_map, 16), resolution=1)
+        resp = set_map_client(map_.to_msg(), PoseWithCovarianceStamped())
+        print(resp)
 
     start = PoseStamped()
     start.pose.position.x = 2.5
