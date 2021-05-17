@@ -74,15 +74,16 @@ def rotate_against_wall(turtle, angle, direction):
         elif initial_orientation - angle < 0:
             if turtle_orientation > 280:
                 turtle_orientation -= 360
-        
+#necesitamos pasar el grid a la funcion        
 def map_connectivity(grid):
     finished = True
     len_x, len_y = np.shape(grid)
-    list_of_zeros = np.where(grid == 0)
+    list_of_zeros = np.transpose(np.where(grid == 0))
     for a in list_of_zeros:
-        x = list_of_zeros[a,0]
-        y = list_of_zeros[a,1]
-        
+        #list of zeros is a tuple
+        x = a[0]
+        y = a[1]
+        #check adyacent positions
         if x > 0:
             if grid[x-1, y] == -1:
                 finished = False

@@ -85,7 +85,7 @@ class Planner:
         map_ = MyMap()
         map_.from_msg(resp.map)
         cv2.imshow("Map BW", MyMap.to_img(map_.grid))
-        cv2.waitKey(0)
+        #cv2.waitKey(0)
 
         voronoi_graph = map_.run()
         print(voronoi_graph)
