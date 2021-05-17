@@ -188,9 +188,9 @@ class Laser2Grid:
             #if i > limit: break
             is_obs = False if rng == float('inf') else True
             if not is_obs: rng = data.range_max
-            end_pos = map(lambda x, y: int(x + y), robot_pos,
+            end_pos = list(map(lambda x, y: int(x + y), robot_pos,
                           polar_to_geom(i + degrees(self.global_yaw),
-                                        rng / self.RESOLUTION))  # translation 2 robot_pos
+                                        rng / self.RESOLUTION)))  # translation 2 robot_pos
             points += BresenhamAlgorithm(robot_pos, end_pos)
 
             if is_obs:
