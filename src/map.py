@@ -184,8 +184,8 @@ class MyMap:
         return binary_big
 
     def run(self):
-        binary_map = self.occupancy_to_binary()
-        binary_map = self.reduce_resolution(binary_map) #esta funcion no existe, la incluyo, downsample no se si se usa
+        binary_map = self.occupancy_to_binary(self._grid)
+        binary_map = self.reduce_resolution(self._grid, self._resolution, binary_map) #esta funcion no existe, la incluyo, downsample no se si se usa
         self.plotter(binary_map)
         binary_big = self.upscale(binary_map, 4)
         voronoi_map = generate_voronoi(binary_big)
