@@ -90,7 +90,7 @@ class Planner:
         voronoi_graph = generate_voronoi(map_.grid)
         path_list = best_first_search(voronoi_graph,
                                       (start.pose.position.x, start.pose.position.y),
-                                      (end.pose.position.x, end.pose.position.y))
+                                      (end.pose.position.x, end.pose.position.y), 0)
         path = Path()
         for p in path_list:
             point = PoseStamped()

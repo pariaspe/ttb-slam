@@ -7,7 +7,7 @@ from math import pi
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
-from voronoi import generate_voronoi
+from planner import generate_voronoi
 
 
 class MyMap:
