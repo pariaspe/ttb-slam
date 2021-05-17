@@ -152,17 +152,15 @@ Visualization Manager:
         {}
       Update Interval: 0
       Value: false
-    - Class: rviz/PointCloud2
-      Name: ScanPointCloud
+    - Class: rviz/Path
+      Name: Path
       Enabled: true
-      Topic: /laserPointCloud
       Unreliable: false
       Queue Size: 10
-      Selectable: true
-      Style: Points
-      Size: 3
+      Line Style: Lines
+      Color: 25;255;0
       Alpha: 1
-      Decay Time: 1
+      Buffer Length: 1
     - Class: rviz/Map
       Name: MyMap
       Topic: /my_map
