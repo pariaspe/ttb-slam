@@ -132,16 +132,11 @@ class MyMap:
             :param binary_full_grid: binary grid without downscaling
             :return:
             """
-            print('reduce resolution 1')
-            new_shape = int(grid.shape[0]/resolution), int(grid.shape[1]/resolution)
-            print('reduce resolution 2')
+            #multiply because this is grid resolution not binary map resolution as intended in original script
+            new_shape = int(grid.shape[0]*resolution), int(grid.shape[1]*resolution)
             new_grid = np.copy(binary_full_grid)
-            print('reduce resolution 3')
             sh = new_shape[0], grid.shape[0]//new_shape[0], new_shape[1], grid.shape[1]//new_shape[1]
-            print('reduce resolution 4')
-            #error is here!!!!!!!!
             new_grid = new_grid.reshape(sh).mean(-1).mean(1)
-            print('reduce resolution 5')
             new_grid[new_grid > 0.2] = 1
             new_grid[new_grid <= 0.2] = 0
             print('binary_grid resolution is reduced')
@@ -175,13 +170,15 @@ class MyMap:
         """
         # kernel to erode map
         # kernel = np.ones
+
+        np.savetxt("Generated/binary_map.csv", binary, delimiter=",")
         plt.imshow(binary, cmap='Greys', interpolation='nearest')
+        plt.pause(3)
         plt.savefig('Generated/binary_map.png')
         print('binary_grid has been generated')
         # binary_eroded = cv2.erode(binary)
-        generate_voronoi(binary)
-        np.savetxt("Generated/binary_map.csv", binary, delimiter=",")
-        print('voronoi has been generated in plotter')
+        #generate_voronoi(binary)
+        #print('voronoi has been generated in plotter')
 
     def upscale(self, binary, factor):
         new_shape = np.shape(binary)

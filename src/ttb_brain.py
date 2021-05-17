@@ -28,7 +28,7 @@ def main():
     sub = rospy.Subscriber("/my_map", OccupancyGrid, my_map)
 
     explorer = Explorer()
-    explorer.do_bump_go(timeout=60)
+    explorer.do_bump_go(timeout=20)
     #bug_nav.main()
     print('exploration finished')
     resp = set_map_client(MAP, PoseWithCovarianceStamped())
