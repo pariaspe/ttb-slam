@@ -10,6 +10,7 @@ import numpy as np
 import rospy
 
 RATE = 0.02
+map_finished = False
 
 def quat_to_euler(orientation):
     quat = (orientation.x, orientation.y, orientation.z, orientation.w)
@@ -121,6 +122,16 @@ def map_connectivity():
         print('map is uncomplete')
     return finished
 
+def launch_connectivity(event):
+    global map_finished
+    
+    map_finished = map_connectivity()
+    if map_finished:
+        print('map is COMPLETE')
+        return map_finished
+    else:
+        print('map is uncomplete, keep exploring')
+        timer = 0
 
 def main():
     print("Bug Navigation Started")
@@ -132,61 +143,60 @@ def main():
 
     print('Initial position is: \n',initial_position)
 
-    timer = time.time()
     timeout = 10
     position_error = 1
     wall_dist = 1
+    global map_finished
     map_finished = False
-    while not map_finished:
-        timer = time.time()
-        while turtle.is_running():
-            pose = turtle.get_estimated_pose()
-            full_distances = turtle.get_all_dist()      
-            
-            turtle.set_vel(vx=0.3)
-            time.sleep(0.05)
-            
+    timer = rospy.Timer(rospy.Duration(timeout), launch_connectivity)
+        
+    while turtle.is_running() and not map_finished:
+        pose = turtle.get_estimated_pose()
+        full_distances = turtle.get_all_dist()      
+        
+        turtle.set_vel(vx=0.3)
+        time.sleep(0.05)
 
             # If the robot is not fully parallel to the wall
-            if full_distances[85] - full_distances[95] > 0.02:
-                print("Adjusting to the left...")
-                turtle.set_vel(az=0.2, vx=0.3)
-                time.sleep(0.2)
+        if full_distances[85] - full_distances[95] > 0.02:
+            print("Adjusting to the left...")
+            turtle.set_vel(az=0.2, vx=0.3)
+            time.sleep(0.2)
                 
-            elif full_distances[95] - full_distances[85] > 0.02:
-                print("Adjusting to the right...")
-                turtle.set_vel(az=-0.2, vx=0.3)
-                time.sleep(0.2)
+        elif full_distances[95] - full_distances[85] > 0.02:
+            print("Adjusting to the right...")
+            turtle.set_vel(az=-0.2, vx=0.3)
+            time.sleep(0.2)
 
-            if full_distances[0] < wall_dist: # If there is wall in front
-                print('Detected wall in front')
-                turtle.stop()   # Stop turtle
-                angle = calculate_wall_angle(full_distances, 0)
-                rotate_against_wall(turtle, angle, -1)      
+        if full_distances[0] < wall_dist: # If there is wall in front
+            print('Detected wall in front')
+            turtle.stop()   # Stop turtle
+            angle = calculate_wall_angle(full_distances, 0)
+            rotate_against_wall(turtle, angle, -1)      
             
-            if full_distances[75] - full_distances[90] > 1: # gap on left side
-                print("Detected a gap on the side")         
+        if full_distances[75] - full_distances[90] > 1: # gap on left side
+            print("Detected a gap on the side")         
 
-                turtle.set_vel(vx=0.3)
-                time.sleep(3)
-                turtle.stop()
-                rotate_against_wall(turtle, 90, 1)      # assumed it is a 90 degree turn
-                turtle.set_vel(vx=0.3)      # Advance to see where the next wall is
-                time.sleep(3)
-            end_timer = time.time()    
-            if end_timer - timer > timeout:
-                turtle.stop()
-                break
-            # print('turtlebot is stopped, check if map is finished')
-            # Check if map is completed, if not, add 60s exploration
-            # Check whether the ttb arrived to the initial position
-            map_finished = map_connectivity()
-            if map_finished:
-                print('map is COMPLETE')
-                return map_finished
-            else:
-                print('map is uncomplete, keep exploring')
-                timer = 0
+            turtle.set_vel(vx=0.3)
+            time.sleep(3)
+            turtle.stop()
+            rotate_against_wall(turtle, 90, 1)      # assumed it is a 90 degree turn
+            turtle.set_vel(vx=0.3)      # Advance to see where the next wall is
+            time.sleep(3)
+            # end_timer = time.time()    
+            # if end_timer - timer > timeout:
+            #     
+            #     break
+            # # print('turtlebot is stopped, check if map is finished')
+            # # Check if map is completed, if not, add 60s exploration
+            # # Check whether the ttb arrived to the initial position
+            # map_finished = map_connectivity()
+            # if map_finished:
+            #     print('map is COMPLETE')
+            #     return map_finished
+            # else:
+            #     print('map is uncomplete, keep exploring')
+            #     timer = 0
 
 if __name__ == "__main__":
     main()
