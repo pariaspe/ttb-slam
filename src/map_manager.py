@@ -11,8 +11,8 @@ from map import MyMap
 class MapManager:
     def __init__(self):
         rospy.init_node("MapManager")
-        rospy.loginfo("Node initialized")
-
+        rospy.loginfo("Node Map manager initialized")
+        
         self._map = MyMap()
         self.map_getter = rospy.Service("my_map/get", GetMap, self.get_occupancy_grid)
         self.map_setter = rospy.Service("my_map/set", SetMap, self.set_occupancy_grid)

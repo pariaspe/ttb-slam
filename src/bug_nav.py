@@ -15,7 +15,6 @@ def quat_to_euler(orientation):
     quat = (orientation.x, orientation.y, orientation.z, orientation.w)
     return tf.transformations.euler_from_quaternion(quat)  # roll, pitch, yaw
 
-
 def detect_wall(ranges):
     # Obtain the index of the closest wall
     min_dist = min(ranges)
@@ -59,22 +58,38 @@ def rotate_against_wall(turtle, angle, direction):
         elif initial_orientation - angle < 0:
             if turtle_orientation > 280:
                 turtle_orientation -= 360
-#necesitamos pasar el grid a la funcion
+
 # this function checks connectivity in free space, 
 # if there is unexplored space next to it, map is not finished
 # due to bad precision, some free spaces are behind walls
 # possible solution would be counting number of adyacencies and if value
 # is under some threshold, we suppose the map is finished        
-def map_connectivity(grid):
+def map_connectivity():
+    rospy.wait_for_service("my_map/get")
+    map_client = rospy.ServiceProxy("my_map/get", GetMap)
+    try:
+        resp = map_client()
+        print('service get_map succesfully called')
+    except rospy.ServiceException as exc:
+        print("Service did not process request: " + str(exc))
+
+    #print('shape is', np.shape(resp))
+    map_gen=MyMap()
+    #print('print map_ ',map_)
+    grid = map_gen.from_msg(resp.map)
     finished = True
     adyacency_count = 0
-    threshold = 10
+    threshold = 50
     len_x, len_y = np.shape(grid)
+    print(np.shape(grid))
     list_of_zeros = np.transpose(np.where(grid == 0))
+    print(list_of_zeros)
     for a in list_of_zeros:
         #list of zeros is a tuple
+        print('adyacency count is: ',adyacency_count)
         x = a[0]
         y = a[1]
+        print('checking position ',x,y)
         #check adyacent positions
         if x > 0:
             if grid[x-1, y] == -1:
@@ -117,7 +132,8 @@ def main():
 
     print('Initial position is: \n',initial_position)
 
-    timer = 0
+    timer = time.time()
+    timeout = 10
     position_error = 1
     wall_dist = 1
     while turtle.is_running():
@@ -155,18 +171,12 @@ def main():
             turtle.set_vel(vx=0.3)      # Advance to see where the next wall is
             time.sleep(3)
             
-        if timer > 60:
+        if time.time() - timer > timeout:
             turtle.stop()
-
-            rospy.wait_for_service("my_map/get")
-            map_client = rospy.ServiceProxy("my_map/get", GetMap)
-            resp = map_client()
-            map_=MyMap()
-            grid_to_evaluate = map_.from_msg(resp.map)
+            print('turtlebot is stopped, check if map is finished')
             # Check if map is completed, if not, add 60s exploration
             # Check whether the ttb arrived to the initial position
-            #stop robot!!!!
-            map_finished = map_connectivity(grid_to_evaluate)
+            map_finished = map_connectivity()
             if map_finished:
                 return map_finished
             else:

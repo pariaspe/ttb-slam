@@ -49,8 +49,8 @@ def main():
     sub = rospy.Subscriber("/my_map", OccupancyGrid, my_map)
     sub_point = rospy.Subscriber("/clicked_point", PointStamped, getPoint)
 
-    print("Do you want to explore a new map)[Y/n]")
-    anw = input()
+    print("Do you want to explore a new map? [Y/n]")
+    anw = raw_input()
     if anw == 'n':
         newMap = False
     else:
@@ -59,14 +59,14 @@ def main():
     if newMap:
         # bump and go navigation
         explorer = Explorer()
-        explorer.do_bump_go(timeout=5)
+        #explorer.do_bump_go(timeout=20)
 
         # bug navigation with connectivity detection
         map_finished = False
         timeout_counter = 0
-        #while not map_finished and timeout_counter < 4:
-        #   map_finished = bug_nav.main()
-        #    timeout_counter += 1
+        while not map_finished and timeout_counter < 4:
+            map_finished = bug_nav.main()
+            timeout_counter += 1
 
         if map_finished: print('map has been completed')
         else: print('map is not totally complete')
@@ -94,7 +94,7 @@ def main():
     goal = PoseStamped()
     print("Select your point in the map")
     
-    # Poner otra condicion que vaya mejor y hacer un while en el que se puedan elegir más puntos
+    # Poner otra condicion que vaya mejor y hacer un while en el que se puedan elegir mas puntos
     while 1:
         goal.pose.position.x = goal_point.point.x
         goal.pose.position.y = goal_point.point.y
@@ -102,6 +102,7 @@ def main():
             break
     print(goal_point.point.x, goal_point.point.y)
     path = get_path(start, goal, 0.001)
+    print('after get path')
 
     explorer.follow_path(path)
 
