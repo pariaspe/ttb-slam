@@ -81,6 +81,11 @@ def BresenhamAlgorithm(start, end):
     return points
 
 
+def get_middle_points(start, end, num=70):
+    return list(set(zip(np.linspace(start[0], end[0], num).astype(int),
+                        np.linspace(start[1], end[1], num).astype(int))))
+
+
 class Laser2Grid:
     RESOLUTION = 0.05
     GRID_RATE = 100000000  # 0.1 secs
@@ -125,15 +130,13 @@ class Laser2Grid:
         robot_pos = self.position_2_grid(self.global_x, self.global_y)
 
         points = []
-        limit = 45 #lets test when bresenham works partially
         for i, rng in enumerate(data.ranges):
-            #if i > limit: break
             is_obs = False if rng == float('inf') else True
-            if not is_obs: rng = data.range_max
+            rng = data.range_max if not is_obs else rng
             end_pos = list(map(lambda x, y: int(x + y), robot_pos,
-                          polar_to_geom(i + degrees(self.global_yaw),
-                                        rng / self.RESOLUTION)))  # translation 2 robot_pos
-            points += BresenhamAlgorithm(robot_pos, end_pos)
+                               polar_to_geom(i + degrees(self.global_yaw),
+                                             rng / self.RESOLUTION)))  # translation 2 robot_pos
+            points += get_middle_points(robot_pos, end_pos)
 
             if is_obs:
                 self.grid_map.mark_as_occupied(end_pos[0], end_pos[1])

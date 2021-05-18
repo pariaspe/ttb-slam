@@ -234,6 +234,10 @@ class MyMap:
             self._grid[x, y] += 20
         elif self._grid[x, y] > 90:
             self._grid[x, y] = 100
+        self._mark_as_probable_obs(x-1, y)
+        self._mark_as_probable_obs(x, y-1)
+        self._mark_as_probable_obs(x+1, y)
+        self._mark_as_probable_obs(x, y+1)
 
     def _mark_as_probable_obs(self, x, y):
         if self._grid[int(x), int(y)] < 1:
