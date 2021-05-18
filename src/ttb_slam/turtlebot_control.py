@@ -69,8 +69,8 @@ class MyTurtlebot:
         self.vel_pub.publish(vel_msg)
 
     def set_pos(self, x, y, tolerance=0.01):
-        ang_pid = PID(P=1, I=0, D=1)
-        linear_pid = PID(P=0.5, I=0, D=0)
+        ang_pid = PID(P=2, I=0, D=0.75)
+        linear_pid = PID(P=1, I=0, D=0.5)
 
         pose = self.get_estimated_pose()
         theta = atan2(y - pose.position.y, x - pose.position.x)
@@ -93,6 +93,11 @@ class MyTurtlebot:
             dist = sqrt(pow(pose.position.x, 2) + pow(pose.position.y, 2))
             vx = abs(linear_pid.update(dist))
 
+            az = -0.75 if az < -0.75 else az  # min
+            az = 0.75 if az > 0.75 else az  # max
+
+            vx = 0.075 if vx < 0.075 else vx  # min
+            vx = 1.0 if vx > 1.0 else vx  # max
             self.set_vel(vx=vx, az=az)
         self.stop()
 
