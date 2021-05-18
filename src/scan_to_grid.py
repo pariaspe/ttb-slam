@@ -3,13 +3,15 @@
 import rospy
 from sensor_msgs.msg import LaserScan
 from nav_msgs.msg import Odometry, OccupancyGrid
-from geometry_msgs.msg import Pose
+from geometry_msgs.msg import Pose, PoseWithCovarianceStamped
+from nav_msgs.srv import SetMap
 
 from math import sin, cos, radians, pi, degrees
 import tf
 import numpy as np
 import time
 import matplotlib.pyplot as plt
+
 
 def quat_to_euler(orientation):
     quat = (orientation.x, orientation.y, orientation.z, orientation.w)
@@ -148,6 +150,7 @@ class MapGrid:
 class Laser2Grid:
     RESOLUTION = 0.05
     GRID_RATE = 100000000  # 0.1 secs
+    SET_MAP_RATE = 1  # 1 sec
 
     def __init__(self, headless=False):
         if not headless:
@@ -158,7 +161,7 @@ class Laser2Grid:
         self.global_y = 0
         self.global_yaw = 0
         self.global_ang_z = 0
-        #if dimensions are not squared, it doesn't work properly
+        # if dimensions are not squared, it doesn't work properly
         self.width = int(25 / self.RESOLUTION)
         self.height = int(25 / self.RESOLUTION)
 
@@ -169,6 +172,11 @@ class Laser2Grid:
 
         self.occup_grid_pub = rospy.Publisher("/my_map", OccupancyGrid, queue_size=1)
         self.grid_timer = rospy.Timer(rospy.Duration(nsecs=self.GRID_RATE), self.send_occupancy_grid)
+
+        # Waiting for Map Manager
+        rospy.wait_for_service("/my_map/set")
+        self.set_map_client = rospy.ServiceProxy("/my_map/set", SetMap)
+        self.set_map_timer = rospy.Timer(rospy.Duration(secs=self.SET_MAP_RATE), self.set_map)
 
     def position_2_grid(self, x, y):
         """Translates real pose to grid position"""
@@ -209,6 +217,10 @@ class Laser2Grid:
     def send_occupancy_grid(self, event):
         """Publish OccupancyGrid map"""
         self.occup_grid_pub.publish(self.grid_map.to_msg())
+
+    def set_map(self, event):
+        """Send map to map manager via setter"""
+        self.set_map_client(self.grid_map.to_msg(), PoseWithCovarianceStamped())
 
 
 if __name__ == '__main__':
