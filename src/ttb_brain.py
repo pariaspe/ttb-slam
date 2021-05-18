@@ -67,9 +67,9 @@ def main():
         # bug navigation with connectivity detection
         map_finished = False
         timeout_counter = 0
-        #while not map_finished and timeout_counter < 4:
-        #    map_finished = bug_nav.main()
-        #    timeout_counter += 1
+        while not map_finished and timeout_counter < 4:
+            map_finished = bug_nav.main()
+            timeout_counter += 1
 
         if map_finished: print('map has been completed')
         else: print('map is not totally complete')
