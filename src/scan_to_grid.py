@@ -3,14 +3,13 @@
 import rospy
 from sensor_msgs.msg import LaserScan
 from nav_msgs.msg import Odometry, OccupancyGrid
-from geometry_msgs.msg import Pose, PoseWithCovarianceStamped
+from geometry_msgs.msg import PoseWithCovarianceStamped
 from nav_msgs.srv import SetMap
 
-from math import sin, cos, radians, pi, degrees
+from math import sin, cos, radians, degrees
 import tf
 import numpy as np
-import time
-import matplotlib.pyplot as plt
+from map import MyMap
 
 
 def quat_to_euler(orientation):
@@ -82,71 +81,6 @@ def BresenhamAlgorithm(start, end):
     return points
 
 
-class MapGrid:
-    t0 = time.time()
-
-    def __init__(self, resolution, width, height):
-        self.frame = "map"
-        self.resolution = resolution
-        #for binary resolutions < 0.5 ttb must stop before generating map or range error will distort map
-        self.binary_resol = 1
-        self.width = width
-        self.height = height
-        self.plotgrid = True
-        self.grid = np.ones((self.width, self.height), dtype=np.int) * -1
-        # self.binary = np.zeros((40,40), dtype=np.int)
-
-    def mark_as_free(self, x, y):
-        # correction for wall error
-        x = x+1
-        y = y+1
-        if self.grid[x, y] == -1:  # unknown --> visited
-            self.grid[x, y] = 20
-        elif 50 <= self.grid[x, y] < 100:  # not 100% sure --> subtract 30
-            self.grid[x, y] -= 20
-        elif 10 <= self.grid[x, y] < 50:
-            self.grid[x, y] -= 10
-        elif self.grid[x, y] < 10:
-            self.grid[x, y] = 0
-
-    def mark_as_occupied(self, x, y):
-        # correction for wall error
-        x = x+1
-        y = y+1
-        # mark occupied cell
-        if 50 < self.grid[x, y] <= 90:
-            self.grid[x, y] += 10
-        elif 50 >= self.grid[x, y]:
-            self.grid[x, y] += 20
-        elif self.grid[x, y] > 90:
-            self.grid[x, y] = 100
-      
-    def _mark_as_probable_obs(self, x, y):
-        if self.grid[int(x), int(y)] < 1:
-            self.grid[int(x), int(y)] = 50
-        elif self.grid[int(x), int(y)] < 90:
-            self.grid[int(x), int(y)] += 20
-
-    def to_msg(self):
-        msg = OccupancyGrid()
-        msg.header.frame_id = self.frame
-        msg.info.map_load_time.secs = round(time.time())
-        msg.info.resolution = self.resolution
-        msg.info.width = self.width
-        msg.info.height = self.height
-
-        # Set the origin of the occupancy grid to fit the map
-        grid_orientation = tf.transformations.quaternion_from_euler(pi, 0, pi / 2)
-        msg.info.origin = Pose()
-        msg.info.origin.orientation.x = grid_orientation[0]
-        msg.info.origin.orientation.y = grid_orientation[1]
-        msg.info.origin.orientation.z = grid_orientation[2]
-        msg.info.origin.orientation.w = grid_orientation[3]
-        msg.data = self.grid.ravel().tolist()
-
-        return msg
-
-
 class Laser2Grid:
     RESOLUTION = 0.05
     GRID_RATE = 100000000  # 0.1 secs
@@ -165,8 +99,8 @@ class Laser2Grid:
         self.width = int(25 / self.RESOLUTION)
         self.height = int(25 / self.RESOLUTION)
 
-        self.grid_map = MapGrid(self.RESOLUTION, self.width, self.height)
-        
+        self.grid_map = MyMap(grid=np.ones((self.width, self.height), dtype=np.int) * -1, resolution=self.RESOLUTION)
+
         self.laserSub = rospy.Subscriber("/scan", LaserScan, self.laser_cb)
         self.laserSub = rospy.Subscriber("/odom", Odometry, self.position_cb)
 
