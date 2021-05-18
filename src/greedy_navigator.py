@@ -29,9 +29,9 @@ def clean_path(path):
 def best_first_search(intMap, start, end, free_space):
     free_space = int(free_space)
     len_x, len_y = np.shape(intMap)
-    print(len_x, len_y)
     START_POINT = {'x':start[0], 'y':start[1]}
     END_POINT = {'x':end[0], 'y':end[1]}
+    
     #self.free_space = free_space
     # Se inicializa y dibuja el grafico
     #fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 15))
@@ -217,7 +217,7 @@ def best_first_search(intMap, start, end, free_space):
     #plt.show()
 
     found_path = np.flipud(clean_path(found_path))
-
+    
     return found_path
 
 

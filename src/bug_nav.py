@@ -81,9 +81,9 @@ def map_connectivity():
     adyacency_count = 0
     threshold = 50
     len_x, len_y = np.shape(grid)
-    print(np.shape(grid))
+    #print(np.shape(grid))
     list_of_zeros = np.transpose(np.where(grid == 0))
-    print(list_of_zeros)
+    #print(list_of_zeros)
     for a in list_of_zeros:
         #list of zeros is a tuple
         print('adyacency count is: ',adyacency_count)

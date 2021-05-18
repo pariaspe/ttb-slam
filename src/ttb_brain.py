@@ -9,6 +9,8 @@ import tf
 from map import MyMap
 from explorer import Explorer
 import bug_nav
+from ttb_slam.turtlebot_control import MyTurtlebot
+import time
 
 MAP = OccupancyGrid()
 goal_point = PointStamped()
@@ -68,9 +70,9 @@ def main():
         # bug navigation with connectivity detection
         map_finished = False
         timeout_counter = 0
-        while not map_finished and timeout_counter < 4:
-            map_finished = bug_nav.main()
-            timeout_counter += 1
+        #while not map_finished and timeout_counter < 4:
+        #    map_finished = bug_nav.main()
+        #    timeout_counter += 1
 
         if map_finished: print('map has been completed')
         else: print('map is not totally complete')
@@ -92,11 +94,16 @@ def main():
         resp = set_map_client(map_.to_msg(), PoseWithCovarianceStamped())
         print(resp)
 
+    turtle = MyTurtlebot()
+    time.sleep(2)
+
     start = PoseStamped()
-    start.pose.position.x = 2.5
-    start.pose.position.y = 2.5
+    start.pose.position.x = turtle.get_estimated_pose().position.x
+    start.pose.position.y = turtle.get_estimated_pose().position.y
+    
     goal = PoseStamped()
-    print("Select your point in the map")
+    print("Your inital point is: ", (start.pose.position.x, start.pose.position.y))
+    print("Select your goal in the map")
     
     # Hacer un while en el que se puedan elegir mas puntos
     # Añadir un timeout
