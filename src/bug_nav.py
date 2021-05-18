@@ -65,8 +65,8 @@ def rotate_against_wall(turtle, angle, direction):
 # possible solution would be counting number of adyacencies and if value
 # is under some threshold, we suppose the map is finished        
 def map_connectivity():
-    rospy.wait_for_service("my_map/get")
-    map_client = rospy.ServiceProxy("my_map/get", GetMap)
+    rospy.wait_for_service("/my_map/get")
+    map_client = rospy.ServiceProxy("/my_map/get", GetMap)
     try:
         resp = map_client()
         print('service get_map succesfully called')
@@ -79,47 +79,47 @@ def map_connectivity():
     grid = map_gen.from_msg(resp.map)
     finished = True
     adyacency_count = 0
-    threshold = 50
+    threshold = 20
     len_x, len_y = np.shape(grid)
-    #print(np.shape(grid))
+    print(np.shape(grid))
     list_of_zeros = np.transpose(np.where(grid == 0))
-    #print(list_of_zeros)
+    print('list of possible points has dimensions: ',np.shape(list_of_zeros[0]))
     for a in list_of_zeros:
         #list of zeros is a tuple
-        print('adyacency count is: ',adyacency_count)
+        #print('adyacency count is: ',adyacency_count)
         x = a[0]
         y = a[1]
-        print('checking position ',x,y)
+        #print('checking position ',x,y)
         #check adyacent positions
         if x > 0:
             if grid[x-1, y] == -1:
                 adyacency_count += 1
-                if adyacency_count >= threshold:
-                    finished = False
-                    print('map is not complete')
-                    return finished
+                # if adyacency_count >= threshold:
+                #     finished = False
+                #     return finished
         if x < len_x - 1:
             if grid[x+1, y] == -1:
                 adyacency_count += 1
-                if adyacency_count >= threshold:
-                    finished = False
-                    print('map is not complete')
-                    return finished
+                # if adyacency_count >= threshold:
+                #     finished = False
+                #     return finished
         if y > 0:
             if grid[x, y-1] == -1:
                 adyacency_count += 1
-                if adyacency_count >= threshold:
-                    finished = False
-                    print('map is not complete')
-                    return finished
+                # if adyacency_count >= threshold:
+                #     finished = False
+                #     return finished
         if y < len_y - 1:
             if grid[x, y+1] == -1:
                 adyacency_count += 1
-                if adyacency_count >= threshold:
-                    finished = False
-                    print('map is not complete')
-                    return finished
-        return finished
+                # if adyacency_count >= threshold:
+                #     finished = False
+                #     return finished
+    print('the total number of adyacent points to unexplored ones is ', adyacency_count)
+    if adyacency_count > threshold:
+        finished = False
+        print('map is uncomplete')
+    return finished
 
 
 def main():
@@ -136,50 +136,56 @@ def main():
     timeout = 10
     position_error = 1
     wall_dist = 1
-    while turtle.is_running():
-        pose = turtle.get_estimated_pose()
-        full_distances = turtle.get_all_dist()      
-        
-        turtle.set_vel(vx=0.3)
-        time.sleep(0.05)
-        
-
-        # If the robot is not fully parallel to the wall
-        if full_distances[85] - full_distances[95] > 0.02:
-            print("Adjusting to the left...")
-            turtle.set_vel(az=0.2, vx=0.3)
-            time.sleep(0.2)
+    map_finished = False
+    while not map_finished:
+        timer = time.time()
+        while turtle.is_running():
+            pose = turtle.get_estimated_pose()
+            full_distances = turtle.get_all_dist()      
             
-        elif full_distances[95] - full_distances[85] > 0.02:
-            print("Adjusting to the right...")
-            turtle.set_vel(az=-0.2, vx=0.3)
-            time.sleep(0.2)
-
-        if full_distances[0] < wall_dist: # If there is wall in front
-            print('Detected wall in front')
-            turtle.stop()   # Stop turtle
-            angle = calculate_wall_angle(full_distances, 0)
-            rotate_against_wall(turtle, angle, -1)      
-        
-        if full_distances[75] - full_distances[90] > 1: # gap on left side
-            print("Detected a gap on the side")         
-
             turtle.set_vel(vx=0.3)
-            time.sleep(3)
-            turtle.stop()
-            rotate_against_wall(turtle, 90, 1)      # assumed it is a 90 degree turn
-            turtle.set_vel(vx=0.3)      # Advance to see where the next wall is
-            time.sleep(3)
+            time.sleep(0.05)
             
-        if time.time() - timer > timeout:
-            turtle.stop()
-            print('turtlebot is stopped, check if map is finished')
+
+            # If the robot is not fully parallel to the wall
+            if full_distances[85] - full_distances[95] > 0.02:
+                print("Adjusting to the left...")
+                turtle.set_vel(az=0.2, vx=0.3)
+                time.sleep(0.2)
+                
+            elif full_distances[95] - full_distances[85] > 0.02:
+                print("Adjusting to the right...")
+                turtle.set_vel(az=-0.2, vx=0.3)
+                time.sleep(0.2)
+
+            if full_distances[0] < wall_dist: # If there is wall in front
+                print('Detected wall in front')
+                turtle.stop()   # Stop turtle
+                angle = calculate_wall_angle(full_distances, 0)
+                rotate_against_wall(turtle, angle, -1)      
+            
+            if full_distances[75] - full_distances[90] > 1: # gap on left side
+                print("Detected a gap on the side")         
+
+                turtle.set_vel(vx=0.3)
+                time.sleep(3)
+                turtle.stop()
+                rotate_against_wall(turtle, 90, 1)      # assumed it is a 90 degree turn
+                turtle.set_vel(vx=0.3)      # Advance to see where the next wall is
+                time.sleep(3)
+            end_timer = time.time()    
+            if end_timer - timer > timeout:
+                turtle.stop()
+                break
+            # print('turtlebot is stopped, check if map is finished')
             # Check if map is completed, if not, add 60s exploration
             # Check whether the ttb arrived to the initial position
             map_finished = map_connectivity()
             if map_finished:
+                print('map is COMPLETE')
                 return map_finished
             else:
+                print('map is uncomplete, keep exploring')
                 timer = 0
 
 if __name__ == "__main__":

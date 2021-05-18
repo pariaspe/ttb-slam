@@ -11,6 +11,7 @@ from explorer import Explorer
 import bug_nav
 from ttb_slam.turtlebot_control import MyTurtlebot
 import time
+import sys
 
 MAP = OccupancyGrid()
 goal_point = PointStamped()
@@ -56,7 +57,11 @@ def main():
     sub_point = rospy.Subscriber("/clicked_point", PointStamped, getPoint)
 
     print("Do you want to explore a new map? [Y/n]")
-    anw = input()
+    
+    if sys.version_info > (3, 0):
+        anw = input()
+    else:
+        anw = raw_input()
     if anw == 'n':
         newMap = False
     else:
@@ -70,9 +75,9 @@ def main():
         # bug navigation with connectivity detection
         map_finished = False
         timeout_counter = 0
-        #while not map_finished and timeout_counter < 4:
-        #    map_finished = bug_nav.main()
-        #    timeout_counter += 1
+        while not map_finished and timeout_counter < 4:
+            map_finished = bug_nav.main()
+            timeout_counter += 1
 
         if map_finished: print('map has been completed')
         else: print('map is not totally complete')
@@ -102,7 +107,7 @@ def main():
     print("Select your goal in the map")
     
     # Hacer un while en el que se puedan elegir mas puntos
-    # Añadir un timeout
+    # Anadir un timeout
     global noInfo
     while noInfo:
         pass
