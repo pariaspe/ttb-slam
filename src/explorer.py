@@ -54,3 +54,6 @@ class Explorer:
             print("Going to", pose.pose.position.x, pose.pose.position.y)
             self.turtle.set_pos(pose.pose.position.x, pose.pose.position.y)
         self.turtle.stop()
+    
+    def send_pos(self):
+        return self.turtle.get_estimated_pose().position.x, self.turtle.get_estimated_pose().position.y

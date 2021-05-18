@@ -94,12 +94,8 @@ def main():
         resp = set_map_client(map_.to_msg(), PoseWithCovarianceStamped())
         print(resp)
 
-    turtle = MyTurtlebot()
-    time.sleep(2)
-
     start = PoseStamped()
-    start.pose.position.x = turtle.get_estimated_pose().position.x
-    start.pose.position.y = turtle.get_estimated_pose().position.y
+    start.pose.position.x, start.pose.position.y = explorer.send_pos()
     
     goal = PoseStamped()
     print("Your inital point is: ", (start.pose.position.x, start.pose.position.y))
