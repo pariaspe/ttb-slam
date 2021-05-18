@@ -13,6 +13,7 @@ import bug_nav
 MAP = OccupancyGrid()
 goal_point = PointStamped()
 goal_point.point.x = 0
+noInfo = True
 
 
 def my_map(data):
@@ -32,6 +33,9 @@ def getPoint(data):
     uncentered_point.point.z = data.point.z
     goal_point = listener.transformPoint("map",uncentered_point)
 
+    global noInfo
+    noInfo = False
+
 
 
 
@@ -50,7 +54,7 @@ def main():
     sub_point = rospy.Subscriber("/clicked_point", PointStamped, getPoint)
 
     print("Do you want to explore a new map? [Y/n]")
-    anw = raw_input()
+    anw = input()
     if anw == 'n':
         newMap = False
     else:
@@ -80,7 +84,7 @@ def main():
         # Load explored map
         try:
             explored_map = np.genfromtxt("Generated/explored_map.csv", delimiter=',')
-            print(explored_map)
+            #print(explored_map)
         except ValueError:
             print("There is no map to load")
 
@@ -94,15 +98,17 @@ def main():
     goal = PoseStamped()
     print("Select your point in the map")
     
-    # Poner otra condicion que vaya mejor y hacer un while en el que se puedan elegir mas puntos
-    while 1:
-        goal.pose.position.x = goal_point.point.x
-        goal.pose.position.y = goal_point.point.y
-        if goal_point.point.x != 0:
-            break
-    print(goal_point.point.x, goal_point.point.y)
+    # Hacer un while en el que se puedan elegir mas puntos
+    # Añadir un timeout
+    global noInfo
+    while noInfo:
+        pass
+    goal.pose.position.x = goal_point.point.x
+    goal.pose.position.y = goal_point.point.y
+
+    print("Selected goal Position is: ", (goal_point.point.x, goal_point.point.y))
     path = get_path(start, goal, 0.001)
-    print('after get path')
+    
 
     explorer.follow_path(path)
 

@@ -65,9 +65,9 @@ class Planner:
                                       (start_point[0], start_point[1]),
                                       (end_point[0], end_point[1]), 0)
         path_list = list(map(lambda i: (float(i[0])/10, float(i[1])/10), path_list))
-        path_list.append([end.pose.position.x, end.pose.position.y])
-        path_list.insert(0, [start.pose.position.x, start.pose.position.y])
-        print(path_list)
+        path_list.append((end.pose.position.x, end.pose.position.y))
+        path_list.insert(0, (start.pose.position.x, start.pose.position.y))
+
         self.is_path = True
         self.path = Path()
         self.path.header.frame_id = "map"
