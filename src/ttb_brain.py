@@ -4,6 +4,7 @@ from nav_msgs.srv import SetMap, GetPlan
 from geometry_msgs.msg import PoseWithCovarianceStamped, PoseStamped, PointStamped
 
 import numpy as np
+import tf
 
 from map import MyMap
 from explorer import Explorer
@@ -20,7 +21,18 @@ def my_map(data):
 
 def getPoint(data):
     global goal_point
-    goal_point = data
+    uncentered_point = PointStamped()
+    
+    listener = tf.TransformListener()
+    listener.waitForTransform("/world", "/map", rospy.Time(0),rospy.Duration(4.0))
+    uncentered_point.header.frame_id = "world"
+    uncentered_point.header.stamp =rospy.Time(0)
+    uncentered_point.point.x = data.point.x
+    uncentered_point.point.y = data.point.y
+    uncentered_point.point.z = data.point.z
+    goal_point = listener.transformPoint("map",uncentered_point)
+
+
 
 
 def main():
@@ -44,17 +56,17 @@ def main():
     else:
         newMap = True
 
-    if newMap == "Y":
+    if newMap:
         # bump and go navigation
         explorer = Explorer()
-        explorer.do_bump_go(timeout=20)
+        explorer.do_bump_go(timeout=5)
 
         # bug navigation with connectivity detection
         map_finished = False
         timeout_counter = 0
-        while not map_finished and timeout_counter < 4:
-            map_finished = bug_nav.main()
-            timeout_counter += 1
+        #while not map_finished and timeout_counter < 4:
+        #   map_finished = bug_nav.main()
+        #    timeout_counter += 1
 
         if map_finished: print('map has been completed')
         else: print('map is not totally complete')
@@ -80,11 +92,15 @@ def main():
     start.pose.position.x = 2.5
     start.pose.position.y = 2.5
     goal = PoseStamped()
+    print("Select your point in the map")
+    
+    # Poner otra condicion que vaya mejor y hacer un while en el que se puedan elegir más puntos
     while 1:
         goal.pose.position.x = goal_point.point.x
         goal.pose.position.y = goal_point.point.y
         if goal_point.point.x != 0:
             break
+    print(goal_point.point.x, goal_point.point.y)
     path = get_path(start, goal, 0.001)
 
     explorer.follow_path(path)
