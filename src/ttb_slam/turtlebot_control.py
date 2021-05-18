@@ -70,7 +70,7 @@ class MyTurtlebot:
 
     def set_pos(self, x, y, tolerance=0.01):
         ang_pid = PID(P=2, I=0, D=0.75)
-        linear_pid = PID(P=1, I=0, D=0.5)
+        linear_pid = PID(P=1, I=0, D=0.3)
 
         pose = self.get_estimated_pose()
         theta = atan2(y - pose.position.y, x - pose.position.x)

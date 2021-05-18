@@ -84,7 +84,7 @@ def map_connectivity():
     len_x, len_y = np.shape(grid)
     print(np.shape(grid))
     list_of_zeros = np.transpose(np.where(grid == 0))
-    print('list of possible points has dimensions: ',np.shape(list_of_zeros[0]))
+    print('list of possible points has dimensions: ',np.shape(list_of_zeros[1]))
     for a in list_of_zeros:
         #list of zeros is a tuple
         #print('adyacency count is: ',adyacency_count)
@@ -174,9 +174,9 @@ def main():
             turtle.set_vel(vx=0.3)      # Advance to see where the next wall is
             time.sleep(3)
                
-            if time.time() - timer > timeout:
-                turtle.stop()
-                break
+        if time.time() - timer > timeout:
+            turtle.stop()
+            time.sleep(2)
             # print('turtlebot is stopped, check if map is finished')
             # Check if map is completed, if not, add 60s exploration
             # Check whether the ttb arrived to the initial position
@@ -186,7 +186,7 @@ def main():
                 return map_finished
             else:
                 print('map is uncomplete, keep exploring')
-                timer = time.time()
+            timer = time.time()
 
 if __name__ == "__main__":
     main()
