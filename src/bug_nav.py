@@ -122,17 +122,6 @@ def map_connectivity():
         print('map is uncomplete')
     return finished
 
-def launch_connectivity(event):
-    global map_finished
-    
-    map_finished = map_connectivity()
-    if map_finished:
-        print('map is COMPLETE')
-        return map_finished
-    else:
-        print('map is uncomplete, keep exploring')
-        timer = 0
-
 def main():
     print("Bug Navigation Started")
 
@@ -148,9 +137,10 @@ def main():
     wall_dist = 1
     global map_finished
     map_finished = False
-    timer = rospy.Timer(rospy.Duration(timeout), launch_connectivity)
+    timer = time.time()
         
     while turtle.is_running() and not map_finished:
+        
         pose = turtle.get_estimated_pose()
         full_distances = turtle.get_all_dist()      
         
@@ -183,20 +173,20 @@ def main():
             rotate_against_wall(turtle, 90, 1)      # assumed it is a 90 degree turn
             turtle.set_vel(vx=0.3)      # Advance to see where the next wall is
             time.sleep(3)
-            # end_timer = time.time()    
-            # if end_timer - timer > timeout:
-            #     
-            #     break
-            # # print('turtlebot is stopped, check if map is finished')
-            # # Check if map is completed, if not, add 60s exploration
-            # # Check whether the ttb arrived to the initial position
-            # map_finished = map_connectivity()
-            # if map_finished:
-            #     print('map is COMPLETE')
-            #     return map_finished
-            # else:
-            #     print('map is uncomplete, keep exploring')
-            #     timer = 0
+               
+            if time.time() - timer > timeout:
+                turtle.stop()
+                break
+            # print('turtlebot is stopped, check if map is finished')
+            # Check if map is completed, if not, add 60s exploration
+            # Check whether the ttb arrived to the initial position
+            map_finished = map_connectivity()
+            if map_finished:
+                print('map is COMPLETE')
+                return map_finished
+            else:
+                print('map is uncomplete, keep exploring')
+                timer = time.time()
 
 if __name__ == "__main__":
     main()
