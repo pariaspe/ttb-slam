@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 import rospy
-from nav_msgs.srv import GetMap, SetMap
+from nav_msgs.srv import GetMap, SetMap, LoadMap
 from nav_msgs.msg import OccupancyGrid
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
 from map import MyMap
 
@@ -16,6 +17,8 @@ class MapManager:
         self._map = MyMap()
         self.map_getter = rospy.Service("my_map/get", GetMap, self.get_occupancy_grid)
         self.map_setter = rospy.Service("my_map/set", SetMap, self.set_occupancy_grid)
+        self.is_map_loaded = False
+        self.map_loader = rospy.Service("my_map/load", LoadMap, self.load_occupancy_grid)
 
         self.binary_srv = rospy.Service("my_map/binary/get", GetMap, self.get_binary_map)
  
@@ -26,8 +29,30 @@ class MapManager:
         return self._map.to_msg()
 
     def set_occupancy_grid(self, req):
-        self._map.from_msg(req.map)
-        return True
+        if not self.is_map_loaded:
+            self._map.from_msg(req.map)
+            return True
+        else:
+            rospy.logwarn_once("Map not set. Already loaded one.")
+            return False
+
+    def load_occupancy_grid(self, req):
+        url = req.map_url
+
+        rel_path = rospy.get_param('output_path', os.getcwd())
+        url = os.path.join(rel_path, url)
+
+        # Load explored map
+        try:
+            explored_map = np.genfromtxt(url, delimiter=',')
+            self.is_map_loaded = True
+            # print(explored_map)
+        except ValueError:
+            print("There is no map to load")
+            return OccupancyGrid(), 1
+
+        self._map = MyMap(MyMap.upscale(explored_map, 16), resolution=1)
+        return self._map, 0
 
     def get_binary_map(self, req):
         return self._map.binary_msg
