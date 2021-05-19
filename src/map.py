@@ -131,6 +131,12 @@ class MyMap:
         print('binary_grid is returned')
         return binary_grid
 
+    @staticmethod
+    def binary_to_occupancy(binary):
+        grid = np.copy(binary)
+        grid = grid.astype(np.int) * 100
+        return grid
+
     @staticmethod    
     def reduce_resolution(grid, resolution, binary_full_grid):
         """
@@ -197,8 +203,8 @@ class MyMap:
     def upscale(binary, factor):
         dimx, dimy = np.array(np.shape(binary)) * factor
         binary_big = cv2.resize(binary, dsize=(dimx, dimy), interpolation=cv2.INTER_CUBIC)
-        plt.imshow(binary_big, cmap='Greys', interpolation='nearest')
-        plt.savefig('Generated/binary_map_upscaled.png')
+        # plt.imshow(binary_big, cmap='Greys', interpolation='nearest')
+        # plt.savefig('Generated/binary_map_upscaled.png')
         return binary_big
 
     def run(self):

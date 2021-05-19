@@ -88,8 +88,7 @@ def get_middle_points(start, end, num=70):
 
 class Laser2Grid:
     RESOLUTION = 0.05
-    GRID_RATE = 100000000  # 0.1 secs
-    SET_MAP_RATE = 1  # 1 sec
+    SET_MAP_RATE = 100000000  # 0.1 sec
 
     def __init__(self, headless=False):
         if not headless:
@@ -109,13 +108,10 @@ class Laser2Grid:
         self.laserSub = rospy.Subscriber("/scan", LaserScan, self.laser_cb)
         self.laserSub = rospy.Subscriber("/odom", Odometry, self.position_cb)
 
-        self.occup_grid_pub = rospy.Publisher("/my_map", OccupancyGrid, queue_size=1)
-        self.grid_timer = rospy.Timer(rospy.Duration(nsecs=self.GRID_RATE), self.send_occupancy_grid)
-
         # Waiting for Map Manager
         rospy.wait_for_service("/my_map/set")
         self.set_map_client = rospy.ServiceProxy("/my_map/set", SetMap)
-        self.set_map_timer = rospy.Timer(rospy.Duration(secs=self.SET_MAP_RATE), self.set_map)
+        self.set_map_timer = rospy.Timer(rospy.Duration(nsecs=self.SET_MAP_RATE), self.set_map)
 
     def position_2_grid(self, x, y):
         """Translates real pose to grid position"""
@@ -150,10 +146,6 @@ class Laser2Grid:
         self.global_y = data.pose.pose.position.y
         _, _, self.global_yaw = quat_to_euler(data.pose.pose.orientation)
         self.global_ang_z = round(data.twist.twist.angular.z, 2)
-
-    def send_occupancy_grid(self, event):
-        """Publish OccupancyGrid map"""
-        self.occup_grid_pub.publish(self.grid_map.to_msg())
 
     def set_map(self, event):
         """Send map to map manager via setter"""

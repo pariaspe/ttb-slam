@@ -4,19 +4,13 @@ from nav_msgs.srv import LoadMap, GetPlan
 from geometry_msgs.msg import PoseStamped, PointStamped
 
 import tf
+import sys
 
-from map import MyMap
 from explorer import Explorer
 import bug_nav
 from ttb_slam.turtlebot_control import MyTurtlebot
 import time
 
-try:
-    input = raw_input
-except NameError:
-    pass
-
-MAP = OccupancyGrid()
 goal_point = PointStamped()
 goal_point.point.x = 0
 noInfo = True
@@ -53,12 +47,12 @@ def main():
     sub_point = rospy.Subscriber("/clicked_point", PointStamped, getPoint)
 
     print("Do you want to explore a new map? [Y/n]")
-    anw = input()
-    if anw == 'n':
-        newMap = False
+    if sys.version_info > (3, 0):
+        anw = input()
     else:
-        newMap = True
+        anw = raw_input()
 
+    newMap = False if anw == 'n' else True
     if newMap:
         # bump and go navigation
         explorer = Explorer()

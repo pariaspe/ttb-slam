@@ -3,13 +3,14 @@ import rospy
 from nav_msgs.srv import GetMap, SetMap, LoadMap
 from nav_msgs.msg import OccupancyGrid
 import numpy as np
-import matplotlib.pyplot as plt
 import os
 
 from map import MyMap
 
 
 class MapManager:
+    PUB_RATE = 100000000  # 0.1 sec
+
     def __init__(self):
         rospy.init_node("MapManager")
         rospy.loginfo("Node Map manager initialized")
@@ -21,9 +22,9 @@ class MapManager:
         self.map_loader = rospy.Service("my_map/load", LoadMap, self.load_occupancy_grid)
 
         self.binary_srv = rospy.Service("my_map/binary/get", GetMap, self.get_binary_map)
- 
-        # binary resolution map (include in brain or get from ros param)
-        self.binary_resol = int(1/0.05)
+
+        self.occup_grid_pub = rospy.Publisher("/my_map", OccupancyGrid, queue_size=1)
+        self.grid_timer = rospy.Timer(rospy.Duration(nsecs=self.PUB_RATE), self.send_occupancy_grid)
 
     def get_occupancy_grid(self, req):
         return self._map.to_msg()
@@ -46,37 +47,20 @@ class MapManager:
         try:
             explored_map = np.genfromtxt(url, delimiter=',')
             self.is_map_loaded = True
-            # print(explored_map)
         except ValueError:
             print("There is no map to load")
             return OccupancyGrid(), 1
 
-        self._map = MyMap(MyMap.upscale(explored_map, 16), resolution=1)
-        return self._map, 0
+        escaled = MyMap.upscale(explored_map, 20)
+        self._map = MyMap(MyMap.binary_to_occupancy(escaled), resolution=0.05)
+        return self._map.to_msg(), 0
 
     def get_binary_map(self, req):
         return self._map.binary_msg
 
-    def occupancy_to_binary(self):
-        # prepares map to filter to binary
-        binary_grid = np.copy(self._map)
-        binary_grid = binary_grid/100
-        binary_grid[binary_grid < 0] = 1
-
-        # reduces resolution of map to filter error
-        new_shape = int(self._map.shape[0]/self.binary_resol), int(self._map.shape[1]/self.binary_resol)
-        new_grid = np.copy(binary_grid)
-        sh = new_shape[0], self._map.shape[0]//new_shape[0], new_shape[1], self._map.shape[1]//new_shape[1]
-        new_grid = new_grid.reshape(sh).mean(-1).mean(1)
-        new_grid[new_grid > 0.2] = 1
-        new_grid[new_grid <= 0.2] = 0
-
-        return np.rint(new_grid)
-
-    def binary_plotter(self, binary_filtered):
-        plt.imshow(binary_filtered, cmap='Greys',  interpolation='nearest')
-        plt.savefig('Generated/binary_map.png')
-        np.savetext("Generated/binary_map.csv", binary_filtered, delimiter=",")
+    def send_occupancy_grid(self, event):
+        """Publish OccupancyGrid map"""
+        self.occup_grid_pub.publish(self._map.to_msg())
 
 
 if __name__ == "__main__":
