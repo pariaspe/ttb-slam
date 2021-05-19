@@ -82,9 +82,8 @@ def map_connectivity():
     adyacency_count = 0
     threshold = 20
     len_x, len_y = np.shape(grid)
-    print(np.shape(grid))
     list_of_zeros = np.transpose(np.where(grid == 0))
-    print('list of possible points has dimensions: ',np.shape(list_of_zeros[1]))
+    print('list of possible points has dimensions: ',np.shape(list_of_zeros))
     for a in list_of_zeros:
         #list of zeros is a tuple
         #print('adyacency count is: ',adyacency_count)
@@ -176,7 +175,7 @@ def main():
                
         if time.time() - timer > timeout:
             turtle.stop()
-            time.sleep(2)
+            #time.sleep(2)
             # print('turtlebot is stopped, check if map is finished')
             # Check if map is completed, if not, add 60s exploration
             # Check whether the ttb arrived to the initial position

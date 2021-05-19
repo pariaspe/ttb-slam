@@ -244,6 +244,8 @@ class MyMap:
             self._grid[int(x), int(y)] = 50
         elif self._grid[int(x), int(y)] < 90:
             self._grid[int(x), int(y)] += 20
+            if self._grid[int(x), int(y)] > 100:
+                self._grid[int(x), int(y)] = 100
 
 
 # for script testing
