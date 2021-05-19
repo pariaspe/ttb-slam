@@ -90,4 +90,5 @@ class Explorer:
         self.turtle.stop()
     
     def send_pos(self):
-        return self.turtle.get_estimated_pose().position.x, self.turtle.get_estimated_pose().position.y
+        pose = self.turtle.get_estimated_pose()
+        return pose.position.x, pose.position.y
