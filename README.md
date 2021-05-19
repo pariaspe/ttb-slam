@@ -23,3 +23,11 @@ roslaunch ttb_slam <file>.launch
 roscd ttb_slam && cd test
 python2 <test-file>.py
 ```
+
+## ARUCO Models Setup
+```bash
+roscd ttb_slam && cd assets/aruco_marks
+export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:$PWD
+```
+
+You can also add the export to your .bashrc

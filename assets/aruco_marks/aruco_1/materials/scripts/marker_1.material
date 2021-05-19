@@ -1,0 +1,16 @@
+material vrc/aruco_1
+{
+  receive_shadows on
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture aruco_1.png
+				filtering anistropic
+        max_anisotropy 16
+			}
+		}
+	}
+}
