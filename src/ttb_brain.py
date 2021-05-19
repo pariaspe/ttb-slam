@@ -1,5 +1,4 @@
 import rospy
-from nav_msgs.msg import OccupancyGrid
 from nav_msgs.srv import LoadMap, GetPlan
 from geometry_msgs.msg import PoseStamped, PointStamped
 

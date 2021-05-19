@@ -1,8 +1,6 @@
 import time
 from ttb_slam.turtlebot_control import MyTurtlebot
 import random
-import tf
-from math import sin, cos
 
 from utils import quat_to_euler, calc_rel_pose
 

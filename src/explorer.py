@@ -1,8 +1,5 @@
-import rospy
-import tf
 from ttb_slam.turtlebot_control import MyTurtlebot
 
-from math import cos, sin
 import time
 import random
 

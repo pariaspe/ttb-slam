@@ -1,10 +1,7 @@
 import time
 from map import MyMap
 from ttb_slam.turtlebot_control import MyTurtlebot
-import random
-import tf
 import math
-from nav_msgs.msg import OccupancyGrid
 from nav_msgs.srv import GetMap
 import numpy as np
 import rospy

@@ -6,7 +6,6 @@ from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Pose
-import tf
 
 from PID import PID
 from math import sqrt, pow, atan2

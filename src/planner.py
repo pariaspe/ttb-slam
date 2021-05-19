@@ -8,8 +8,7 @@ import numpy as np
 import cv2
 
 from greedy_navigator import best_first_search
-from map import MyMap
-from map import generate_voronoi
+from map import MyMap, generate_voronoi
 
 
 class Planner:

@@ -2,12 +2,11 @@
 
 import rospy
 from sensor_msgs.msg import LaserScan
-from nav_msgs.msg import Odometry, OccupancyGrid
+from nav_msgs.msg import Odometry
 from geometry_msgs.msg import PoseWithCovarianceStamped
 from nav_msgs.srv import SetMap
 
-from math import sin, cos, radians, degrees
-import tf
+from math import degrees
 import numpy as np
 from map import MyMap
 
