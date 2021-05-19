@@ -51,8 +51,8 @@ class MapManager:
             print("There is no map to load")
             return OccupancyGrid(), 1
 
-        escaled = MyMap.upscale(explored_map, 20)
-        self._map = MyMap(MyMap.binary_to_occupancy(escaled), resolution=0.05)
+        expanded = MyMap.expand(explored_map, 20)
+        self._map = MyMap(MyMap.binary_to_occupancy(expanded), resolution=0.05)
         return self._map.to_msg(), 0
 
     def get_binary_map(self, req):

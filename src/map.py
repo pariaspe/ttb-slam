@@ -7,7 +7,6 @@ from math import pi
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
-#from planner import generate_voronoi
 
 
 def generate_voronoi(original_img):
@@ -207,6 +206,10 @@ class MyMap:
         # plt.savefig('Generated/binary_map_upscaled.png')
         return binary_big
 
+    @staticmethod
+    def expand(grid, factor):
+        return np.kron(grid, np.ones((factor, factor)))
+
     def run(self):
         binary_map = self.occupancy_to_binary(self._grid)
         binary_map = self.reduce_resolution(self._grid, self._resolution, binary_map) #esta funcion no existe, la incluyo, downsample no se si se usa
@@ -250,8 +253,8 @@ class MyMap:
             self._grid[int(x), int(y)] = 50
         elif self._grid[int(x), int(y)] < 90:
             self._grid[int(x), int(y)] += 20
-            if self._grid[int(x), int(y)] > 100:
-                self._grid[int(x), int(y)] = 100
+        if self._grid[int(x), int(y)] > 100:
+            self._grid[int(x), int(y)] = 100
 
 
 # for script testing
