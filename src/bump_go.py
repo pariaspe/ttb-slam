@@ -7,16 +7,12 @@ from utils import quat_to_euler, calc_rel_pose
 RATE = 0.02
 
 
-def main():
-    print("Test Started")
-
-    turtle = MyTurtlebot()
-    time.sleep(2)
-
+def bump_go(turtle, timeout=None):
+    start_time = time.time()
     while turtle.is_running():
         pose = turtle.get_estimated_pose()
         dists = turtle.get_frontal_dist()
-    
+
         # Maquina de estados
         if any(i < 0.50 for i in dists):  # FRENTE A OBSTACULO
             print("OBSTACULO DETECTADO EN ({0}, {1})".format(*calc_rel_pose(pose, dists[22])))
@@ -30,7 +26,21 @@ def main():
         else:  # AVANCE
             turtle.set_vel(vx=0.3)
 
+        if timeout is not None and time.time() - start_time > timeout:
+            break
+
         time.sleep(RATE)
+    turtle.stop()
+
+
+def main():
+    print("Test Started")
+
+    turtle = MyTurtlebot()
+    time.sleep(2)
+
+    bump_go(turtle)
+    turtle.stop()
 
     print("Test Finished")
 

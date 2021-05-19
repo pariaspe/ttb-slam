@@ -55,7 +55,7 @@ def main():
     if newMap:
         # bump and go navigation
         explorer = Explorer()
-        #explorer.do_bump_go(timeout=20)
+        # explorer.do_bump_go(timeout=20)
 
         # bug navigation with connectivity detection
         map_finished = False
