@@ -11,10 +11,7 @@ import tf
 from PID import PID
 from math import sqrt, pow, atan2
 
-
-def quat_to_euler(orientation):
-    quat = (orientation.x, orientation.y, orientation.z, orientation.w)
-    return tf.transformations.euler_from_quaternion(quat)  # roll, pitch, yaw
+from utils import quat_to_euler
 
 
 class MyTurtlebot:

@@ -9,12 +9,11 @@ from nav_msgs.srv import GetMap
 import numpy as np
 import rospy
 
+from utils import quat_to_euler
+
 RATE = 0.02
 map_finished = False
 
-def quat_to_euler(orientation):
-    quat = (orientation.x, orientation.y, orientation.z, orientation.w)
-    return tf.transformations.euler_from_quaternion(quat)  # roll, pitch, yaw
 
 def detect_wall(ranges):
     # Obtain the index of the closest wall

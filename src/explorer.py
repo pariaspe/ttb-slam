@@ -6,16 +6,7 @@ from math import cos, sin
 import time
 import random
 
-
-def quat_to_euler(orientation):
-    quat = (orientation.x, orientation.y, orientation.z, orientation.w)
-    return tf.transformations.euler_from_quaternion(quat)  # roll, pitch, yaw
-
-
-def calc_rel_pose(pose, dist):
-    # OJO, no se si estara bien
-    _, _, yaw = quat_to_euler(pose.orientation)
-    return pose.position.x + cos(yaw)*dist, pose.position.y + sin(yaw)*dist
+from utils import quat_to_euler, calc_rel_pose
 
 
 class Explorer:

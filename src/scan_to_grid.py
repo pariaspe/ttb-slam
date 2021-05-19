@@ -11,20 +11,7 @@ import tf
 import numpy as np
 from map import MyMap
 
-
-def quat_to_euler(orientation):
-    quat = (orientation.x, orientation.y, orientation.z, orientation.w)
-    return tf.transformations.euler_from_quaternion(quat)  # roll, pitch, yaw
-
-
-def polar_to_geom(ang, dist):
-    """
-    Converts polar coord to geometric coord. It supposes origin as (0, 0)
-    :param ang: angle (degrees)
-    :param dist: length
-    :return: [x, y]
-    """
-    return [cos(radians(ang)) * dist, sin(radians(ang)) * dist]
+from utils import quat_to_euler, polar_to_geom
 
 
 # Bresenham Algorithm allows aliasing with integers only, useful to find cells in a line
