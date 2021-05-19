@@ -7,7 +7,9 @@ from utils import quat_to_euler, calc_rel_pose
 RATE = 0.02
 
 
-def bump_go(turtle, timeout=None):
+def bump_go(turtle, timeout=None, check_connectivity=None):
+    check_timeout = 10
+    timer = time.time()
     start_time = time.time()
     while turtle.is_running():
         pose = turtle.get_estimated_pose()
@@ -25,6 +27,16 @@ def bump_go(turtle, timeout=None):
             turtle.stop()
         else:  # AVANCE
             turtle.set_vel(vx=0.3)
+
+        if check_connectivity is not None and time.time() - timer > check_timeout:
+            # Check if map is completed, if not, add 60s exploration
+            # Check whether the ttb arrived to the initial position
+            if check_connectivity():
+                print('map is COMPLETE')
+                break
+            else:
+                print('map is incomplete, keep exploring')
+            timer = time.time()
 
         if timeout is not None and time.time() - start_time > timeout:
             break

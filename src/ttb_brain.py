@@ -7,8 +7,6 @@ import sys
 
 from explorer import Explorer
 import bug_nav
-from ttb_slam.turtlebot_control import MyTurtlebot
-import time
 
 goal_point = PointStamped()
 goal_point.point.x = 0
@@ -55,7 +53,7 @@ def main():
     if newMap:
         # bump and go navigation
         explorer = Explorer()
-        # explorer.do_bump_go(timeout=20)
+        # explorer.do_bump_go(autostop=True)
 
         # bug navigation with connectivity detection
         map_finished = False
