@@ -43,44 +43,35 @@ class Explorer:
 
         finished = True
         adjacency_count = 0
-        threshold = 20
+        threshold = 10
         len_x, len_y = np.shape(grid)
         list_of_zeros = np.transpose(np.where(grid == 0))
         print('list of possible points has dimensions: ', np.shape(list_of_zeros))
         for a in list_of_zeros:
-            # list of zeros is a tuple
-            # print('adjacency count is: ',adjacency_count)
             x, y = a
-            # print('checking position ',x,y)
-            # check adyacent positions
             if x > 0:
                 if grid[x - 1, y] == -1:
                     adjacency_count += 1
-                    # if adyacency_count >= threshold:
-                    #     finished = False
-                    #     return finished
+
             if x < len_x - 1:
                 if grid[x + 1, y] == -1:
                     adjacency_count += 1
-                    # if adyacency_count >= threshold:
-                    #     finished = False
-                    #     return finished
+
             if y > 0:
                 if grid[x, y - 1] == -1:
                     adjacency_count += 1
-                    # if adyacency_count >= threshold:
-                    #     finished = False
-                    #     return finished
+
             if y < len_y - 1:
                 if grid[x, y + 1] == -1:
                     adjacency_count += 1
-                    # if adyacency_count >= threshold:
-                    #     finished = False
-                    #     return finished
-        print('the total number of adjacent points to unexplored ones is ', adjacency_count)
-        if adjacency_count > threshold:
-            finished = False
-            print('map is incomplete')
+
+            if adjacency_count > threshold:
+                finished = False
+                print('map is incomplete')
+                return finished
+        if finished:
+            print('the total number of adjacent points to unexplored ones is ', adjacency_count)
+            
         return finished
 
     def follow_path(self, path):

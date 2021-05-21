@@ -132,3 +132,5 @@ src/scan_to_pc_copy.py
 # Editos
 .idea/*
 src/Generated/
+src/test.py
+src/binaryservice.txt

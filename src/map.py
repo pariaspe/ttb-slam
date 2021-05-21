@@ -110,12 +110,7 @@ class MyMap:
     def from_msg(self, msg):
         self._resolution = msg.info.resolution
         self._width = msg.info.width
-        #print('width is', self._width)
         self._height = msg.info.height
-        #print('height is', self._height)
-        if msg.info.height < 1:
-            self._height = 1
-        #print('height corrected is', self._height)
         self._grid = np.reshape(np.array(msg.data), [int(len(msg.data) / self._width), int(len(msg.data) / self._height)])
         return self._grid
 
@@ -149,8 +144,8 @@ class MyMap:
         new_grid = np.copy(binary_full_grid)
         sh = new_shape[0], grid.shape[0]//new_shape[0], new_shape[1], grid.shape[1]//new_shape[1]
         new_grid = new_grid.reshape(sh).mean(-1).mean(1)
-        new_grid[new_grid > 0.2] = 1
-        new_grid[new_grid <= 0.2] = 0
+        new_grid[new_grid > 0.5] = 1
+        new_grid[new_grid <= 0.5] = 0
         print('binary_grid resolution is reduced')
         return np.rint(new_grid)
 
