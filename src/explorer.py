@@ -8,6 +8,8 @@ from map import MyMap
 from nav_msgs.srv import GetMap
 from ttb_slam.msg import ExploreAction, ExploreResult
 
+from scan_to_grid import Laser2Grid
+
 import numpy as np
 
 
@@ -23,6 +25,9 @@ class Explorer:
 
         self.turtle = MyTurtlebot(headless=True)
         self.do_autostop = True
+
+        # Map generator
+        self.map_generator = Laser2Grid(headless=True)
 
         rospy.wait_for_service("/my_map/get")
         self.map_client = rospy.ServiceProxy("/my_map/get", GetMap)

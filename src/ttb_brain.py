@@ -1,5 +1,5 @@
 import rospy
-from nav_msgs.srv import LoadMap, GetPlan
+from nav_msgs.srv import LoadMap
 from geometry_msgs.msg import PoseStamped, PointStamped
 import actionlib
 from actionlib_msgs.msg import GoalID
