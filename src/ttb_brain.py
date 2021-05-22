@@ -54,7 +54,7 @@ def main():
 
     sub_point = rospy.Subscriber("/clicked_point", PointStamped, getPoint)
 
-    newMap = ask_user("Do you want to explore a new map?", ["Y", "n"])
+    newMap = ask_user("Do you want to explore a new map?", ["y", "n"])
     if newMap:
         strategy = ask_user("Choose exploration strategy (1: Bug, 2: BumpGo):", ["1", "2"])
 
