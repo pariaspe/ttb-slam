@@ -74,14 +74,11 @@ class Planner:
         filtered_path = np.copy(path_list[::2])
         # if path_list[-1,0] != filtered_path[-1][0] or path_list[-1][1] != filtered_path[-1,1]: 
         #     filtered_path = np.append(filtered_path, path_list[-1], axis=0)
-        p.reshape(filtered_path, (-1,2))
-        print('og path list:')
-        print(path_list)        
-        print('filtered path list:')
-        print(filtered_path)
+        
+        filtered_path = np.reshape(filtered_path, (-1,2))
+        
         smooth_path = self.interpolate_path(filtered_path,0.2)
-        print('smooth path list:')
-        print(smooth_path)
+        
         for p in smooth_path:
             point = PoseStamped()
             point.pose.position.x = p[0]
