@@ -5,9 +5,25 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   geometry_msgs
   sensor_msgs
+  actionlib
+  actionlib_msgs
+)
+
+add_message_files(
+    FILES
+)
+
+add_action_files(DIRECTORY action
+    FILES
+    Explore.action
 )
 
 catkin_python_setup()
+
+generate_messages(
+    DEPENDENCIES
+    actionlib_msgs
+)
 
 catkin_package()
 

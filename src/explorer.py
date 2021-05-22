@@ -1,21 +1,54 @@
+#!/usr/bin/env python
 import rospy
-from ttb_slam.turtlebot_control import MyTurtlebot
+import actionlib
+from ttb_control.turtlebot_control import MyTurtlebot
 from bump_go import bump_go
 from bug_nav import bug_nav
 from map import MyMap
 from nav_msgs.srv import GetMap
+from ttb_slam.msg import ExploreAction, ExploreResult
 
 import numpy as np
+
+
+status_enum = ["PENDING", "ACTIVE", "PREEMPTED", "SUCCEEDED", "ABORTED", "REJECTED", "PREEMPTING", "RECALLING",
+               "RECALLED", "LOST"]
 
 
 class Explorer:
     RATE = 0.02
 
     def __init__(self):
-        self.turtle = MyTurtlebot()
+        rospy.init_node("Explorer")
+
+        self.turtle = MyTurtlebot(headless=True)
+        self.do_autostop = True
 
         rospy.wait_for_service("/my_map/get")
         self.map_client = rospy.ServiceProxy("/my_map/get", GetMap)
+        self.server = actionlib.SimpleActionServer("/explorer", ExploreAction, self.do_explore, False)
+        self.server.start()
+
+    def do_explore(self, goal):
+        print(goal)
+        if goal.goal.id == "1":
+            self.do_bug_nav(autostop=self.do_autostop)
+        elif goal.goal.id == "2":
+            self.do_bump_go(autostop=self.do_autostop)
+        else:
+            result = ExploreResult()
+            result.result.goal_id.stamp = goal.goal.stamp
+            result.result.goal_id.id = goal.goal.id
+            result.result.status = status_enum.index("REJECTED")
+            result.result.text = "Unknown exploration strategy"
+            print(result)
+            self.server.set_succeeded(result)
+
+        result = ExploreResult()
+        result.result.goal_id = goal.goal
+        result.result.status = status_enum.index("SUCCEEDED")
+        result.result.text = "Exploration completed"
+        self.server.set_succeeded(result)
 
     def do_bump_go(self, timeout=None, autostop=False):
         if autostop:
@@ -83,3 +116,8 @@ class Explorer:
     def send_pos(self):
         pose = self.turtle.get_estimated_pose()
         return pose.position.x, pose.position.y
+
+
+if __name__ == "__main__":
+    explorer = Explorer()
+    rospy.spin()

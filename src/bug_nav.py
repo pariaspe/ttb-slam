@@ -1,6 +1,6 @@
 import time
 from map import MyMap
-from ttb_slam.turtlebot_control import MyTurtlebot
+from ttb_control.turtlebot_control import MyTurtlebot
 import math
 from nav_msgs.srv import GetMap
 import numpy as np

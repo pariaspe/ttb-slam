@@ -14,9 +14,10 @@ from utils import quat_to_euler
 
 
 class MyTurtlebot:
-    def __init__(self):
-        rospy.init_node('turtlebot_node')
-        rospy.loginfo("Turtlebot init.")
+    def __init__(self, headless=False):
+        if not headless:
+            rospy.init_node('turtlebot_node')
+            rospy.loginfo("Turtlebot init.")
 
         self.__is_running = True
         self.__ranges = [float('inf')] * 360

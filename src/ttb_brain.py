@@ -1,12 +1,13 @@
 import rospy
 from nav_msgs.srv import LoadMap, GetPlan
 from geometry_msgs.msg import PoseStamped, PointStamped
+import actionlib
+from actionlib_msgs.msg import GoalID
+from ttb_slam.msg import ExploreAction, ExploreGoal
 
 import tf
 import sys
 import time
-
-from explorer import Explorer
 
 goal_point = None
 
@@ -23,8 +24,7 @@ def ask_user(question, options):
             break
         else:
             print("Invalid answer..\n")
-
-    return True if anw == options[0] else False
+    return anw
 
 
 def getPoint(data):
@@ -42,7 +42,8 @@ def getPoint(data):
 
 
 def main():
-    print("Brain started")
+    rospy.init_node("brain_ttb")
+    rospy.loginfo("Brain started")
 
     # Waiting for Map Manager
     rospy.wait_for_service("/my_map/load")
@@ -55,28 +56,33 @@ def main():
     sub_point = rospy.Subscriber("/clicked_point", PointStamped, getPoint)
 
     newMap = ask_user("Do you want to explore a new map?", ["y", "n"])
+    explorer_client = actionlib.SimpleActionClient("/explorer", ExploreAction)
+    explorer_client.wait_for_server()
+
+    newMap = bool(ask_user("> Do you want to explore a new map?", ["Y", "n"]) == "Y")
     if newMap:
-        strategy = ask_user("Choose exploration strategy (1: Bug, 2: BumpGo):", ["1", "2"])
+        strategy = ask_user("> Choose exploration strategy (1: Bug, 2: BumpGo):", ["1", "2"])
 
-        explorer = Explorer()
-        if strategy:
-            explorer.do_bug_nav(autostop=True)
+        rospy.loginfo("Starting exploration.")
+        goal = ExploreGoal(goal=GoalID(id=strategy))
+        explorer_client.send_goal(goal)
+        explorer_client.wait_for_result()
+        result = explorer_client.get_result()
+
+        if result.result.status == 3:
+            rospy.loginfo('Exploration finished successfully.')
         else:
-            explorer.do_bump_go(autostop=True)
-
-        print('Exploration finished')
+            rospy.loginfo("Exploration failed.")
     else:
-        explorer = Explorer()
-
         resp = load_map_client("Generated/explored_map.csv")
         print(resp.result == 0)
 
     time.sleep(1)  # wait a second to avoid 0,0 pose
     start = PoseStamped()
-    start.pose.position.x, start.pose.position.y = explorer.send_pos()
-    print("Initial Point: [{}, {}]".format(start.pose.position.x, start.pose.position.y))
+    # start.pose.position.x, start.pose.position.y = explorer.send_pos()
+    rospy.loginfo("Initial Point: [{}, {}]".format(start.pose.position.x, start.pose.position.y))
 
-    print("Select Goal Point in rviz map:")
+    print("> Select Goal Point in rviz map:")
     while goal_point is None:
         time.sleep(0.1)
 
@@ -87,12 +93,12 @@ def main():
     goal.pose.position.x = goal_point.point.x
     goal.pose.position.y = goal_point.point.y
 
-    print("Goal Point: [{}, {}]".format(goal_point.point.x, goal_point.point.y))
+    rospy.loginfo("Goal Point: [{}, {}]".format(goal_point.point.x, goal_point.point.y))
     path = get_path(start, goal, 0.001)
 
-    explorer.follow_path(path)
+    # explorer.follow_path(path)
 
-    print("Brain ended")
+    rospy.loginfo("Brain ended")
 
 
 if __name__ == "__main__":

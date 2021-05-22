@@ -1,5 +1,5 @@
 import time
-from ttb_slam.turtlebot_control import MyTurtlebot
+from ttb_control.turtlebot_control import MyTurtlebot
 import random
 
 from utils import quat_to_euler, calc_rel_pose
