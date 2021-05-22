@@ -72,14 +72,19 @@ class Planner:
         self.path.header.frame_id = "map"
         filtered_path = []
         filtered_path = np.copy(path_list[::2])
-        # if path_list[-1,0] != filtered_path[-1][0] or path_list[-1][1] != filtered_path[-1,1]: 
-        #     filtered_path = np.append(filtered_path, path_list[-1], axis=0)
+        if path_list[-1][0] != filtered_path[-1][0] or path_list[-1][1] != filtered_path[-1][1]: 
+            filtered_path = np.vstack([filtered_path, path_list[-1]])
         
         filtered_path = np.reshape(filtered_path, (-1,2))
+        no_obstacles = True
+        n = 1
+        while no_obstacles:
+            try_path = self.interpolate_path(filtered_path,0.2*n)
+            n += 1
+            no_obstacles = self.check_obstacles(try_path)
+            if no_obstacles: smooth_path = np.copy(try_path)
         
-        smooth_path = self.interpolate_path(filtered_path,0.2)
-        
-        for p in smooth_path:
+        for p in try_path:
             point = PoseStamped()
             point.pose.position.x = p[0]
             point.pose.position.y = p[1]
@@ -96,6 +101,11 @@ class Planner:
             filtered_path = np.delete(filtered_path, duplicates, axis=0)
 
         return filtered_path
+            
+    def check_obstacles(self, path):
+        for p in path:
+            a = 1
+        return False
             
 
 
