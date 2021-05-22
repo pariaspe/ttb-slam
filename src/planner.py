@@ -82,9 +82,11 @@ class Planner:
             try_path = self.interpolate_path(filtered_path,0.2*n)
             n += 1
             no_obstacles = self.check_obstacles(try_path)
-            if no_obstacles: smooth_path = np.copy(try_path)
+            if no_obstacles: 
+                smooth_path = np.copy(try_path)
+                print('smoothened trajectory is valid')
         
-        for p in try_path:
+        for p in smooth_path:
             point = PoseStamped()
             point.pose.position.x = p[0]
             point.pose.position.y = p[1]
@@ -103,9 +105,27 @@ class Planner:
         return filtered_path
             
     def check_obstacles(self, path):
-        for p in path:
-            a = 1
-        return False
+        rospy.wait_for_service("my_map/get")
+        map_client = rospy.ServiceProxy("my_map/get", GetMap)
+        grid = map_client()
+        rospy.wait_for_service("/my_map/binary/get")
+        binarymap = rospy.ServiceProxy("/my_map/binary/get", GetMap)
+        resp = binarymap()
+        map = MyMap()
+        map.from_msg(grid.map)
+        binary = MyMap.from_msg(map, resp.map)
+        for i in range(1,len(path)):
+            dist = abs(path[i-1][0]-path[i][0] + path[i-1][1]-path[i][1])
+            if dist > 0.2:
+                elements = int(round((dist/0.2), 0))
+            else:
+                elements = 1
+            tray_points = np.linspace(path[i-1],path[i],num=elements,dtype=int)
+            if binary[tray_points] == 1:
+                valid = False
+                print('trajectory is going through obstacles, incorrect')
+                break
+        return valid
             
 
 
