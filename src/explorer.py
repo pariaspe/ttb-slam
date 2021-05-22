@@ -107,16 +107,6 @@ class Explorer:
             
         return finished
 
-    def follow_path(self, path):
-        for pose in path.plan.poses:
-            print("Going to", pose.pose.position.x, pose.pose.position.y)
-            self.turtle.set_pos(pose.pose.position.x, pose.pose.position.y)
-        self.turtle.stop()
-    
-    def send_pos(self):
-        pose = self.turtle.get_estimated_pose()
-        return pose.position.x, pose.position.y
-
 
 if __name__ == "__main__":
     explorer = Explorer()

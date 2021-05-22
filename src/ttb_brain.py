@@ -4,6 +4,7 @@ from geometry_msgs.msg import PoseStamped, PointStamped
 import actionlib
 from actionlib_msgs.msg import GoalID
 from ttb_slam.msg import ExploreAction, ExploreGoal
+from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 
 import tf
 import sys
@@ -19,7 +20,7 @@ def ask_user(question, options):
             anw = input()
         else:
             anw = raw_input()
-
+        anw = anw.lower()
         if anw in options:
             break
         else:
@@ -49,17 +50,17 @@ def main():
     rospy.wait_for_service("/my_map/load")
     load_map_client = rospy.ServiceProxy("/my_map/load", LoadMap)
 
-    # Waiting for Planner
-    rospy.wait_for_service("/planner/path/get")
-    get_path = rospy.ServiceProxy("/planner/path/get", GetPlan)
-
     sub_point = rospy.Subscriber("/clicked_point", PointStamped, getPoint)
 
-    newMap = ask_user("Do you want to explore a new map?", ["y", "n"])
+    # Waiting for Explorer
     explorer_client = actionlib.SimpleActionClient("/explorer", ExploreAction)
     explorer_client.wait_for_server()
 
-    newMap = bool(ask_user("> Do you want to explore a new map?", ["Y", "n"]) == "Y")
+    # Waiting for Navigator
+    navigator_client = actionlib.SimpleActionClient("/navigator", MoveBaseAction)
+    navigator_client.wait_for_server()
+
+    newMap = bool(ask_user("> Do you want to explore a new map?", ["y", "n"]) == "y")
     if newMap:
         strategy = ask_user("> Choose exploration strategy (1: Bug, 2: BumpGo):", ["1", "2"])
 
@@ -77,11 +78,6 @@ def main():
         resp = load_map_client("Generated/explored_map.csv")
         print(resp.result == 0)
 
-    time.sleep(1)  # wait a second to avoid 0,0 pose
-    start = PoseStamped()
-    # start.pose.position.x, start.pose.position.y = explorer.send_pos()
-    rospy.loginfo("Initial Point: [{}, {}]".format(start.pose.position.x, start.pose.position.y))
-
     print("> Select Goal Point in rviz map:")
     while goal_point is None:
         time.sleep(0.1)
@@ -89,14 +85,16 @@ def main():
         # TODO Hacer un while en el que se puedan elegir mas puntos
         # TODO Anhadir un timeout
 
-    goal = PoseStamped()
-    goal.pose.position.x = goal_point.point.x
-    goal.pose.position.y = goal_point.point.y
+    goal_pose = PoseStamped()
+    goal_pose.pose.position.x = goal_point.point.x
+    goal_pose.pose.position.y = goal_point.point.y
 
-    rospy.loginfo("Goal Point: [{}, {}]".format(goal_point.point.x, goal_point.point.y))
-    path = get_path(start, goal, 0.001)
-
-    # explorer.follow_path(path)
+    # Navigator
+    rospy.loginfo("Starting navigation.")
+    goal = MoveBaseGoal(target_pose=goal_pose)
+    navigator_client.send_goal(goal)
+    navigator_client.wait_for_result()
+    result = navigator_client.get_result()
 
     rospy.loginfo("Brain ended")
 

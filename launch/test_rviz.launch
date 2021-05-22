@@ -30,4 +30,5 @@
   <node name="map_manager" pkg="ttb_slam" type="map_manager.py" output="screen"/>
   <node name="planner" pkg="ttb_slam" type="planner.py" output="screen"/>
   <node name="explorer" pkg="ttb_slam" type="explorer.py" output="screen"/>
+  <node name="navigator" pkg="ttb_slam" type="navigator.py" output="screen"/>
 </launch>
