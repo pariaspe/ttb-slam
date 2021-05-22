@@ -29,4 +29,5 @@
   <node name="grid_map" pkg="ttb_slam" type="scan_to_grid.py" output="screen"/>
   <node name="map_manager" pkg="ttb_slam" type="map_manager.py" output="screen"/>
   <node name="planner" pkg="ttb_slam" type="planner.py" output="screen"/>
+  <node name="explorer" pkg="ttb_slam" type="explorer.py" output="screen"/>
 </launch>

@@ -1,0 +1,8 @@
+# Define the goal
+actionlib_msgs/GoalID goal
+---
+# Define the result
+actionlib_msgs/GoalStatus result
+---
+# Define the feedback
+actionlib_msgs/GoalStatus feedback
