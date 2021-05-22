@@ -66,17 +66,38 @@ class Planner:
         path_list = list(map(lambda i: (float(i[0])/10, float(i[1])/10), path_list))
         path_list.append((end.pose.position.x, end.pose.position.y))
         path_list.insert(0, (start.pose.position.x, start.pose.position.y))
-
+        
         self.is_path = True
         self.path = Path()
         self.path.header.frame_id = "map"
-        for p in path_list:
+        filtered_path = []
+        filtered_path = np.copy(path_list[::2])
+        # if path_list[-1,0] != filtered_path[-1][0] or path_list[-1][1] != filtered_path[-1,1]: 
+        #     filtered_path = np.append(filtered_path, path_list[-1], axis=0)
+        
+        filtered_path = np.reshape(filtered_path, (-1,2))
+        
+        smooth_path = self.interpolate_path(filtered_path,0.2)
+        
+        for p in smooth_path:
             point = PoseStamped()
             point.pose.position.x = p[0]
             point.pose.position.y = p[1]
             self.path.poses.append(point)
-            print('moving to position', p)
         return self.path
+
+    def interpolate_path(self, og_path, resolution):
+        duplicates = []
+        filtered_path = np.copy(og_path)
+        for i in range(1,len(filtered_path)):
+            if np.allclose(filtered_path[i],filtered_path[i-1],rtol=0,atol=resolution):
+                duplicates.append(i)
+        if duplicates:
+            filtered_path = np.delete(filtered_path, duplicates, axis=0)
+
+        return filtered_path
+            
+
 
     def publish_path(self, event):
         if self.is_path:

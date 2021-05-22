@@ -55,6 +55,7 @@ def main():
 
     sub_point = rospy.Subscriber("/clicked_point", PointStamped, getPoint)
 
+    newMap = ask_user("Do you want to explore a new map?", ["y", "n"])
     explorer_client = actionlib.SimpleActionClient("/explorer", ExploreAction)
     explorer_client.wait_for_server()
 
