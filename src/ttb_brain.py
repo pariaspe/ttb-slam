@@ -78,23 +78,30 @@ def main():
         resp = load_map_client("Generated/explored_map.csv")
         print(resp.result == 0)
 
-    print("> Select Goal Point in rviz map:")
-    while goal_point is None:
-        time.sleep(0.1)
+    keepExploring = True
 
-        # TODO Hacer un while en el que se puedan elegir mas puntos
-        # TODO Anhadir un timeout
+    while keepExploring:
+        print("> Select Goal Point in rviz map:")
+        while goal_point is None:
+            time.sleep(0.1)
 
-    goal_pose = PoseStamped()
-    goal_pose.pose.position.x = goal_point.point.x
-    goal_pose.pose.position.y = goal_point.point.y
+            # TODO Hacer un while en el que se puedan elegir mas puntos
+            # TODO Anhadir un timeout
 
-    # Navigator
-    rospy.loginfo("Starting navigation.")
-    goal = MoveBaseGoal(target_pose=goal_pose)
-    navigator_client.send_goal(goal)
-    navigator_client.wait_for_result()
-    result = navigator_client.get_result()
+        goal_pose = PoseStamped()
+        goal_pose.pose.position.x = goal_point.point.x
+        goal_pose.pose.position.y = goal_point.point.y
+
+        # Navigator
+        rospy.loginfo("Starting navigation.")
+        goal = MoveBaseGoal(target_pose=goal_pose)
+        navigator_client.send_goal(goal)
+        navigator_client.wait_for_result()
+        result = navigator_client.get_result()
+        print('navigator result is ',result)
+        keepExploring = False
+        #goal_point = None
+        keepExploring = bool(ask_user("> Do you want to navigate to other point? publish point and introduce y", ["y", "n"]) == "y")
 
     rospy.loginfo("Brain ended")
 

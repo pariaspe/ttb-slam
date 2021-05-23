@@ -81,7 +81,7 @@ class Explorer:
 
         finished = True
         adjacency_count = 0
-        threshold = 10
+        threshold = 1
         len_x, len_y = np.shape(grid)
         list_of_zeros = np.transpose(np.where(grid == 0))
         print('list of possible points has dimensions: ', np.shape(list_of_zeros))

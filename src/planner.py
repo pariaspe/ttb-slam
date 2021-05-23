@@ -6,10 +6,11 @@ from geometry_msgs.msg import PoseStamped
 
 import numpy as np
 import cv2
+import matplotlib.pyplot as plt
 
 from greedy_navigator import best_first_search
 from map import MyMap, generate_voronoi
-
+from scan_to_grid import get_middle_points
 
 class Planner:
     def __init__(self):
@@ -78,14 +79,19 @@ class Planner:
         filtered_path = np.reshape(filtered_path, (-1,2))
         no_obstacles = True
         n = 1
-        while no_obstacles:
+        while no_obstacles and n<20:
             try_path = self.interpolate_path(filtered_path,0.2*n)
             n += 1
             no_obstacles = self.check_obstacles(try_path)
-            if no_obstacles: 
+            
+            if no_obstacles and len(try_path) >= 2: 
                 smooth_path = np.copy(try_path)
                 print('smoothened trajectory is valid')
-        
+            elif len(try_path) < 2:
+                break
+        if path_list[-1][0] != smooth_path[-1][0] or path_list[-1][1] != smooth_path[-1][1]: 
+            smooth_path = np.vstack([smooth_path, path_list[-1]])
+
         for p in smooth_path:
             point = PoseStamped()
             point.pose.position.x = p[0]
@@ -105,6 +111,7 @@ class Planner:
         return filtered_path
             
     def check_obstacles(self, path):
+        valid = True
         rospy.wait_for_service("my_map/get")
         map_client = rospy.ServiceProxy("my_map/get", GetMap)
         grid = map_client()
@@ -114,16 +121,29 @@ class Planner:
         map = MyMap()
         map.from_msg(grid.map)
         binary = MyMap.from_msg(map, resp.map)
-        for i in range(1,len(path)):
-            dist = abs(path[i-1][0]-path[i][0] + path[i-1][1]-path[i][1])
-            if dist > 0.2:
-                elements = int(round((dist/0.2), 0))
+        # plt.imshow(binary, cmap='Greys', interpolation='nearest')
+        # plt.pause(5)
+        path_to_map = np.around(path/0.05, 0).astype(int) #to achieve points in the scale of the map
+        #now we create points in trajectory with linspace to check 
+        for i in range(1,len(path_to_map)):
+            dist = abs(path_to_map[i-1][0]-path_to_map[i][0] + path_to_map[i-1][1]-path_to_map[i][1])
+            print('distance between initial point ',path_to_map[i-1],' and next point ',path_to_map[i], 'is ',dist)
+            if dist > 1:
+                elements = int(round(dist/2, 0))
+                print('number of points to check is ',elements)
             else:
                 elements = 1
-            tray_points = np.linspace(path[i-1],path[i],num=elements,dtype=int)
-            if binary[tray_points] == 1:
-                valid = False
-                print('trajectory is going through obstacles, incorrect')
+            tray_points = get_middle_points(path_to_map[i-1], path_to_map[i], num=elements)
+            #print('possible trajectory is: ',list(tray_points))
+            corrected_points = np.around(tray_points, 0).astype(int)
+            #print('corrected trajectory is: ',list(corrected_points))
+            
+            for p in tray_points: #check positions in the map
+                if binary[p[0]][p[1]] == 1:
+                    valid = False
+                    print('trajectory is going through obstacles, incorrect')
+                    break
+            if not valid:
                 break
         return valid
             
