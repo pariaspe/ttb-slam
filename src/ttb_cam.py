@@ -18,8 +18,8 @@ cam_info_sub = None
 cam_model = image_geometry.PinholeCameraModel()
 pc = PointCloud2()
 
-proj_matrix = []
-dist_coeff = []
+#proj_matrix = []
+#dist_coeff = []
 
 mark_pose = (0, 0, 0)
 
@@ -29,10 +29,10 @@ def cam_info_cb(msg):
     cam_model.fromCameraInfo(msg)
     cam_info_sub.unregister()
 
-    global proj_matrix 
-    global dist_coeff
-    proj_matrix = np.reshape(msg.K, (3,3))
-    dist_coeff = msg.D
+    #global proj_matrix 
+    #global dist_coeff
+    #proj_matrix = np.reshape(msg.K, (3,3))
+    #dist_coeff = msg.D
 
 def pc_cb(msg):
     global pc
@@ -53,7 +53,8 @@ def callback(rgb, depth):
 
     aruco_dict = aruco.Dictionary_get(aruco.DICT_6X6_250)
     parameters = aruco.DetectorParameters_create()
-    corners, ids, rejectedImgPoints = aruco.detectMarkers(rgb_resized, aruco_dict, parameters=parameters)
+    gray = cv.cvtColor(rgb_resized, cv.COLOR_BGR2GRAY)  # Change grayscale
+    corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
 
     if ids is not None:
         corner = corners[0][0]
@@ -69,12 +70,14 @@ def callback(rgb, depth):
         global mark_pose
         #mark_pose = poses
         # print(poses)
-        global proj_matrix 
-        global dist_coeff
+        proj_matrix = np.reshape(cam_model.K, (3,3))
+        dist_coeff = np.reshape(cam_model.D, 5)
         rvecs, tvecs, _ = aruco.estimatePoseSingleMarkers(corners, 0.5, proj_matrix, dist_coeff)
-        print(rvecs)
-        #(rvecs, tvecs)= (ret[0][0, 0, :], ret[1][0, 0, :])
-        
+        (rvecs- tvecs).any() # Get rid of numpy value array error
+        rotation_matrix, _ = cv.Rodrigues(rvecs)    # Change from Rodrigues angles to rotation matrix
+        tvecs = tvecs[0]    # There is just 1 marker, change with multiples
+        trans_matrix = np.insert(np.insert(rotation_matrix, 3, tvecs, axis=1), 3, [0, 0, 0, 1], axis=0) # Obtain the transformation matrix
+
         pose_markers = rgb_resized.copy()
         #for rvec, tvec in rvecs, tvecs:
         aruco.drawAxis(pose_markers, proj_matrix, dist_coeff, rvecs, tvecs, 0.05)
@@ -116,7 +119,7 @@ def main():
     ts.registerCallback(callback)
 
     while turtle.is_running():
-        turtle.set_vel(az=0.1)
+        turtle.set_vel(az=0.2)
 
         pose = turtle.get_estimated_pose()
         turtle_pose = (pose.position.x, pose.position.y, pose.position.z)
