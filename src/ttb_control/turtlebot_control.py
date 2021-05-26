@@ -94,7 +94,7 @@ class MyTurtlebot:
             az = 0.75 if az > 0.75 else az  # max
 
             vx = 0.075 if vx < 0.075 else vx  # min
-            vx = 1.0 if vx > 1.0 else vx  # max
+            vx = 0.5 if vx > 0.2 else vx  # max, std vel 0.5
             self.set_vel(vx=vx, az=az)
         self.stop()
 
