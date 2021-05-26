@@ -5,8 +5,13 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   geometry_msgs
   sensor_msgs
+  nav_msgs
   actionlib
   actionlib_msgs
+  move_base_msgs
+  cv_bridge
+  image_geometry
+  message_filters
 )
 
 add_message_files(
