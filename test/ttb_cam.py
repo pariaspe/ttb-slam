@@ -1,6 +1,6 @@
 import rospy
 import time
-from ttb_slam.turtlebot_control import MyTurtlebot
+from ttb_control.turtlebot_control import MyTurtlebot
 from sensor_msgs.msg import Image, CameraInfo, PointCloud2
 from cv_bridge import CvBridge
 import image_geometry
@@ -38,18 +38,16 @@ def callback(rgb, depth):
     global bridge
     rgb_img = bridge.imgmsg_to_cv2(rgb, "bgr8")
     depth_img = bridge.imgmsg_to_cv2(depth, depth.encoding)
-
-    rgb_resized = cv.resize(rgb_img, (rgb.width, rgb.height), interpolation=cv.INTER_AREA)
-    depth_resized = cv.resize(depth_img, (depth.width, depth.height), interpolation=cv.INTER_AREA)
+    height, width = rgb_img.shape[:2]
 
     aruco_dict = aruco.Dictionary_get(aruco.DICT_6X6_250)
     parameters = aruco.DetectorParameters_create()
-    corners, ids, rejectedImgPoints = aruco.detectMarkers(rgb_resized, aruco_dict, parameters=parameters)
+    corners, ids, rejectedImgPoints = aruco.detectMarkers(rgb_img, aruco_dict, parameters=parameters)
 
     if ids is not None:
         corner = corners[0][0]
         centroid = (corner[:, 0].mean(), corner[:, 1].mean())
-        rgb_resized = cv.circle(rgb_resized, centroid, radius=3, color=(0, 255, 255), thickness=-1)
+        rgb_resized = cv.circle(rgb_img, centroid, radius=3, color=(0, 255, 255), thickness=-1)
 
         depth = get_depth(int(centroid[0]), int(centroid[1]))
         vector = cam_model.projectPixelTo3dRay(centroid)
@@ -61,11 +59,14 @@ def callback(rgb, depth):
         # print(poses)
     else:
         mark_pose = None
-    frame_markers = aruco.drawDetectedMarkers(rgb_resized.copy(), corners, ids)
-    frame_markers_depth = aruco.drawDetectedMarkers(depth_resized.copy(), corners, ids)
+    frame_markers = aruco.drawDetectedMarkers(rgb_img.copy(), corners, ids)
+    frame_markers_depth = aruco.drawDetectedMarkers(depth_img.copy(), corners, ids)
 
-    cv.imshow("Depth", frame_markers)
-    cv.imshow("Second", frame_markers_depth)
+    rgb_resized = cv.resize(frame_markers, (width/2, height/2), interpolation=cv.INTER_AREA)
+    depth_resized = cv.resize(frame_markers_depth, (width/2, height/2), interpolation=cv.INTER_AREA)
+
+    cv.imshow("Depth", depth_resized)
+    cv.imshow("RGB", rgb_resized)
     cv.waitKey(3)
 
 
@@ -93,7 +94,7 @@ def main():
     ts.registerCallback(callback)
 
     while turtle.is_running():
-        turtle.set_vel(az=0.3)
+        # turtle.set_vel(az=0.3)
 
         pose = turtle.get_estimated_pose()
         turtle_pose = (pose.position.x, pose.position.y, pose.position.z)
