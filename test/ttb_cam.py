@@ -62,8 +62,8 @@ def callback(rgb, depth):
     frame_markers = aruco.drawDetectedMarkers(rgb_img.copy(), corners, ids)
     frame_markers_depth = aruco.drawDetectedMarkers(depth_img.copy(), corners, ids)
 
-    rgb_resized = cv.resize(frame_markers, (width/2, height/2), interpolation=cv.INTER_AREA)
-    depth_resized = cv.resize(frame_markers_depth, (width/2, height/2), interpolation=cv.INTER_AREA)
+    rgb_resized = cv.resize(frame_markers, (width/4, height/4), interpolation=cv.INTER_AREA)
+    depth_resized = cv.resize(frame_markers_depth, (width/4, height/4), interpolation=cv.INTER_AREA)
 
     cv.imshow("Depth", depth_resized)
     cv.imshow("RGB", rgb_resized)
@@ -94,13 +94,13 @@ def main():
     ts.registerCallback(callback)
 
     while turtle.is_running():
-        # turtle.set_vel(az=0.3)
+        turtle.set_vel(az=0.3)
 
         pose = turtle.get_estimated_pose()
         turtle_pose = (pose.position.x, pose.position.y, pose.position.z)
-        if mark_pose is not None:
-            # print(-mark_pose[2] + turtle_pose[0], mark_pose[0] + turtle_pose[1], mark_pose[2] + turtle_pose[0])
-            print(mark_pose)
+        # if mark_pose is not None:
+        #     # print(-mark_pose[2] + turtle_pose[0], mark_pose[0] + turtle_pose[1], mark_pose[2] + turtle_pose[0])
+        #     print(mark_pose)
 
         time.sleep(RATE)
 
